@@ -45,6 +45,36 @@
     S.log.unshift({ t: Date.now(), kind: kind, label: label, meta: meta || '' });
     if (S.log.length > 60) S.log.length = 60;
   }
+  /* Manual export/import: a JSON file is the whole sync story — no server,
+     no account, no dependency. Carrying the record between devices is a
+     deliberate act, not a background sync. */
+  function exportRecord() {
+    var blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'knowledge-cabinet-record-' + TODAY + '.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  function importRecord(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var raw = JSON.parse(reader.result);
+        if (!raw || typeof raw !== 'object') throw new Error('bad file');
+        var d = blank();
+        for (var k in d) if (raw[k] !== undefined) d[k] = raw[k];
+        S = d;
+        save();
+        toast('Record imported.');
+        renderRegister(); renderCase();
+      } catch (e) { toast('Could not read that file.'); }
+    };
+    reader.readAsText(file);
+  }
 
   /* ── Index ──────────────────────────────────────────────────────────── */
   var C = {}, A = {}, CH = {};
@@ -174,6 +204,15 @@
   function markBlock(chId, i) {
     var r = S.read[chId] || (S.read[chId] = { blocks: {}, seconds: 0, opens: 0 });
     if (!r.blocks[i]) { r.blocks[i] = 1; save(); }
+  }
+  // Explicit "I've read this" — distinct from the auto-tracked scroll fraction.
+  // finished counts every time it's marked, so it doubles as a reread tally.
+  function markRead(chId) {
+    var r = S.read[chId] || (S.read[chId] = { blocks: {}, seconds: 0, opens: 0 });
+    r.finished = (r.finished || 0) + 1;
+    r.lastFinishedAt = new Date().toISOString().slice(0, 10); // date-only, matches ago()'s expected format
+    save();
+    return r;
   }
   function meet(id) {
     var m = S.met[id] || (S.met[id] = { n: 0 });
@@ -379,10 +418,12 @@
   function drawerHTML(ch) {
     var depth = ch.minutes >= 11 ? 'deep' : ch.minutes <= 6 ? 'shallow' : '';
     var ajar = (ch.state === 'new' || ch.state === 'evolving') ? ' open-ajar' : '';
+    var r = S.read[ch.id];
     var p = progress(ch.id);
     var meta = [
       '<span class="acc">' + esc(ch.id.toUpperCase().slice(0, 3)) + '·' + String(BOOK.chapters.indexOf(ch) + 1).padStart(3, '0') + '</span>',
       '<span class="drawer-state st-' + ch.state + '">' + stateLabel(ch.state) + '</span>',
+      r && r.finished ? '<span class="drawer-readmark" title="Marked read ' + plural(r.finished, 'time') + ', last ' + ago(r.lastFinishedAt) + '">' + icon('i-check') + (r.finished > 1 ? ' ×' + r.finished : '') + '</span>' : '',
       '<span>' + ch.minutes + ' min</span>',
       '<span>' + ago(ch.revised || ch.added) + '</span>'
     ].join('');
@@ -444,6 +485,7 @@
       ['Your time', mins ? mins + ' min' : 'under a minute'],
       ['Times opened', String(r.opens || 1)]
     ];
+    if (r.finished) rows.push(['Marked read', plural(r.finished, 'time') + ', last ' + ago(r.lastFinishedAt)]);
     if (ch.supersededBy && CH[ch.supersededBy]) rows.push(['Superseded by', CH[ch.supersededBy].title]);
     return '<div class="lc-top">' +
         '<svg class="spec" viewBox="0 0 48 48" fill="none" stroke="' + ink(ch.area, true) + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#sp-' + ch.area + '"></use></svg>' +
@@ -463,6 +505,13 @@
       '</div>';
   }
 
+  function refreshLabelCard(ch) {
+    var lc = $('.labelcard');
+    if (!lc) return;
+    lc.innerHTML = labelHTML(ch, S.read[ch.id] || {});
+    wireExtent(ch);
+  }
+
   function wireExtent(ch) {
     var dial = $('.dial');
     function set(d) {
@@ -478,6 +527,7 @@
   function paint(ch) {
     var host = $('#reading');
     var dial = S.extent;
+    var r = S.read[ch.id] || {};
     var visible = ch.blocks.map(function (b, i) { return { b: b, i: i }; }).filter(function (o) { return o.b.d <= dial; });
 
     var html = '<h1>' + esc(ch.title) + '</h1><p class="summary">' + rich(ch.summary) + '</p>';
@@ -513,7 +563,9 @@
     var next = others[Math.floor(Math.random() * others.length)];
     html += '<div class="table-foot">' +
       '<div class="btn-row">' +
-        '<button class="btn brass" data-act="file-chapter">' + icon('i-pin') + ' File this for the rounds</button>' +
+        '<button class="btn brass" data-act="mark-read"><span class="mark-read-label">' + icon('i-check') + ' ' +
+          (r.finished ? 'Read it again' : 'Mark as read') + '</span></button>' +
+        '<button class="btn" data-act="file-chapter">' + icon('i-pin') + ' File this for the rounds</button>' +
         '<button class="btn" data-act="random">' + icon('i-die') + ' Somewhere else</button>' +
       '</div>' +
       (next ? '<button class="btn" data-open="' + next.id + '">Next in ' + esc(A[ch.area].name) + ': ' + esc(next.title) + '</button>' : '') +
@@ -564,6 +616,15 @@
       ensureCard('chapter', ch.id, 'In your own words: what does “' + ch.title + '” claim?', ch.summary.replace(REF, '$2$1'), ch.title);
       logEvent('file', ch.title, 'whole drawer');
       save(); toast('Filed the whole drawer.');
+    }
+    if (act === 'mark-read') {
+      var chr = CH[S.lastOpen];
+      var r = markRead(chr.id);
+      toast(r.finished > 1 ? 'Marked read again — ' + plural(r.finished, 'time') + ' now.' : 'Marked as read.');
+      logEvent('read', chr.title, r.finished > 1 ? 'reread' : 'first read');
+      var lbl = t.querySelector('.mark-read-label');
+      if (lbl) lbl.innerHTML = icon('i-check') + ' Read it again';
+      refreshLabelCard(chr);
     }
   }
 
@@ -880,7 +941,7 @@
 
     v.innerHTML =
       '<div class="room-head"><h1 class="room-title">The <em>register</em></h1>' +
-        '<p class="room-lede">What the collection knows about how you use it. Nothing leaves this device — it is a local record, kept so the bars can tell you which growth area you have quietly stopped visiting.</p></div>' +
+        '<p class="room-lede">What the collection knows about how you use it. It stays on this device unless you export it — a local record, kept so the bars can tell you which growth area you have quietly stopped visiting.</p></div>' +
       '<div class="ledger">' +
         '<div class="tallies">' + [
           [fmtMin(secs), 'time at the table'],
@@ -914,9 +975,21 @@
             '<b>' + esc(e.label) + '</b><em style="color:' + (e.kind === 'round' ? '#7fc9a4' : '#c9962f') + '">' + esc(e.kind) + (e.meta ? ' · ' + esc(e.meta) : '') + '</em></div>';
         }).join('') : '<div class="log-row"><time>—</time><b>Nothing recorded yet</b><em>idle</em></div>') + '</div>' +
 
-        '<div class="btn-row" style="margin-top:2rem"><button class="btn" id="wipe">Clear this device\u2019s record</button></div>' +
+        '<div class="btn-row" style="margin-top:2rem">' +
+          '<button class="btn" id="export-record">Export record</button>' +
+          '<button class="btn" id="import-record">Import record\u2026</button>' +
+          '<input type="file" id="import-file" accept="application/json" hidden>' +
+          '<button class="btn" id="wipe">Clear this device\u2019s record</button>' +
+        '</div>' +
       '</div>';
 
+    $('#export-record').addEventListener('click', exportRecord);
+    $('#import-record').addEventListener('click', function () { $('#import-file').click(); });
+    $('#import-file').addEventListener('change', function (e) {
+      var file = e.target.files && e.target.files[0];
+      if (file) importRecord(file);
+      e.target.value = '';
+    });
     $('#wipe').addEventListener('click', function () {
       if (!confirm('Clear reading history, filed checks and metrics on this device?')) return;
       S = blank(); localStorage.removeItem(KEY); toast('Register cleared.'); renderRegister(); renderCase();

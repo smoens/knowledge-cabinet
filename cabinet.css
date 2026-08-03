@@ -345,6 +345,8 @@ button.bay:hover .bay-act { color: #f6d894; }
 .st-evolving { color: var(--brass); }
 .st-retiring { color: #c98f86; }
 .st-live     { color: var(--on-cab-3); border-color: transparent; padding-left: 0; }
+.drawer-readmark { display: inline-flex; align-items: center; gap: .2rem; color: var(--brass); }
+.drawer-readmark .ic { width: .85em; height: .85em; }
 
 .pull {
   width: 30px; height: 9px; border-radius: 2px; flex: none;
