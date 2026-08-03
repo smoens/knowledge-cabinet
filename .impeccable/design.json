@@ -1,54 +1,337 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-03T21:55:24.539+02:00",
-  "title": "Design System: Living Book",
+  "generatedAt": "2026-08-03T21:42:09.101Z",
+  "title": "Design System: Knowledge Cabinet",
   "extensions": {
     "colorMeta": {
-      "brass":       { "role": "primary",   "displayName": "Signal Brass",       "canonical": "#c9962f", "tonalRamp": ["#2a1f08", "#4b3a12", "#6d551d", "#8a6a2a", "#a97f24", "#c9962f", "#ddb04e", "#edc264"] },
-      "brass-lit":   { "role": "primary",   "displayName": "Lit Brass",          "canonical": "#edc264", "tonalRamp": ["#3a2c11", "#5e4718", "#836424", "#a37f2e", "#c39a3d", "#dcae4e", "#edc264", "#f6d894"] },
-      "brass-dim":   { "role": "primary",   "displayName": "Dim Brass",          "canonical": "#8a6a2a", "tonalRamp": ["#241a09", "#3d2d10", "#574019", "#705422", "#8a6a2a", "#a5813a", "#c19a52", "#d7b473"] },
-      "brass-label": { "role": "primary",   "displayName": "Label Brass",        "canonical": "#bd9445", "tonalRamp": ["#2c210d", "#4a3915", "#69531f", "#88702c", "#a4863a", "#bd9445", "#d0ac60", "#e3c485"] },
-      "a-tech":      { "role": "secondary", "displayName": "Technical Red",      "canonical": "#c8402f", "tonalRamp": ["#2f0f0a", "#521a12", "#75261a", "#8f2a1d", "#a83526", "#c8402f", "#dc6a5b", "#ec9488"] },
-      "a-comm":      { "role": "secondary", "displayName": "Communication Amber","canonical": "#d98a1f", "tonalRamp": ["#2e1c05", "#4f3009", "#70450d", "#8a5507", "#af6f16", "#d98a1f", "#e8a54c", "#f2c07e"] },
-      "a-learn":     { "role": "secondary", "displayName": "Learning Green",     "canonical": "#2e8f74", "tonalRamp": ["#0a2019", "#123529", "#1a4b3a", "#1d6151", "#247a63", "#2e8f74", "#4fae93", "#7fc9b4"] },
-      "a-mem":       { "role": "secondary", "displayName": "Memory Blue",        "canonical": "#3f74c8", "tonalRamp": ["#0d1a30", "#152a52", "#1e3b75", "#2b4f8c", "#345fa8", "#3f74c8", "#6b95d8", "#98b6e6"] },
-      "a-think":     { "role": "secondary", "displayName": "Thinking Violet",    "canonical": "#8455c9", "tonalRamp": ["#1f1230", "#341d52", "#492875", "#5b3691", "#6e44ad", "#8455c9", "#a37add", "#c1a3ea"] },
-      "baize":       { "role": "tertiary",  "displayName": "Baize Green",        "canonical": "#2f4c3c", "tonalRamp": ["#0f1913", "#182720", "#22362b", "#2f4c3c", "#375b48", "#3f6853", "#5c8a72", "#84ad96"] },
-      "cab":         { "role": "neutral",   "displayName": "Cabinet Walnut",     "canonical": "#221a13", "tonalRamp": ["#0f0b07", "#17110c", "#221a13", "#292017", "#33281d", "#4a3a29", "#6b5540", "#8f7458"] },
-      "on-cab":      { "role": "neutral",   "displayName": "On-Walnut Ivory",    "canonical": "#ece0cb", "tonalRamp": ["#3a3226", "#5a4d3a", "#7c6b52", "#a5947d", "#b3a08a", "#cbbba0", "#ece0cb", "#f6efe0"] },
-      "ivory":       { "role": "neutral",   "displayName": "Reading Ivory",      "canonical": "#f4ece0", "tonalRamp": ["#8a7d68", "#a89a83", "#c4b79e", "#dbcdb7", "#e9dece", "#f4ece0", "#faf5ec", "#fefbf5"] },
-      "ink":         { "role": "neutral",   "displayName": "Table Ink",          "canonical": "#241d14", "tonalRamp": ["#181209", "#241d14", "#3a3123", "#5f5445", "#6f6555", "#8b8071", "#b0a695", "#d4ccbc"] }
+      "brass": {
+        "role": "primary",
+        "displayName": "Signal Brass",
+        "canonical": "#c9962f",
+        "tonalRamp": [
+          "#2a1f08",
+          "#4b3a12",
+          "#6d551d",
+          "#8a6a2a",
+          "#a97f24",
+          "#c9962f",
+          "#ddb04e",
+          "#edc264"
+        ]
+      },
+      "brass-lit": {
+        "role": "primary",
+        "displayName": "Lit Brass",
+        "canonical": "#edc264",
+        "tonalRamp": [
+          "#3a2c11",
+          "#5e4718",
+          "#836424",
+          "#a37f2e",
+          "#c39a3d",
+          "#dcae4e",
+          "#edc264",
+          "#f6d894"
+        ]
+      },
+      "brass-dim": {
+        "role": "primary",
+        "displayName": "Dim Brass",
+        "canonical": "#8a6a2a",
+        "tonalRamp": [
+          "#241a09",
+          "#3d2d10",
+          "#574019",
+          "#705422",
+          "#8a6a2a",
+          "#a5813a",
+          "#c19a52",
+          "#d7b473"
+        ]
+      },
+      "brass-label": {
+        "role": "primary",
+        "displayName": "Label Brass",
+        "canonical": "#bd9445",
+        "tonalRamp": [
+          "#2c210d",
+          "#4a3915",
+          "#69531f",
+          "#88702c",
+          "#a4863a",
+          "#bd9445",
+          "#d0ac60",
+          "#e3c485"
+        ]
+      },
+      "a-tech": {
+        "role": "secondary",
+        "displayName": "Technical Red",
+        "canonical": "#c8402f",
+        "tonalRamp": [
+          "#2f0f0a",
+          "#521a12",
+          "#75261a",
+          "#8f2a1d",
+          "#a83526",
+          "#c8402f",
+          "#dc6a5b",
+          "#ec9488"
+        ]
+      },
+      "a-comm": {
+        "role": "secondary",
+        "displayName": "Communication Amber",
+        "canonical": "#d98a1f",
+        "tonalRamp": [
+          "#2e1c05",
+          "#4f3009",
+          "#70450d",
+          "#8a5507",
+          "#af6f16",
+          "#d98a1f",
+          "#e8a54c",
+          "#f2c07e"
+        ]
+      },
+      "a-learn": {
+        "role": "secondary",
+        "displayName": "Learning Green",
+        "canonical": "#2e8f74",
+        "tonalRamp": [
+          "#0a2019",
+          "#123529",
+          "#1a4b3a",
+          "#1d6151",
+          "#247a63",
+          "#2e8f74",
+          "#4fae93",
+          "#7fc9b4"
+        ]
+      },
+      "a-mem": {
+        "role": "secondary",
+        "displayName": "Memory Blue",
+        "canonical": "#3f74c8",
+        "tonalRamp": [
+          "#0d1a30",
+          "#152a52",
+          "#1e3b75",
+          "#2b4f8c",
+          "#345fa8",
+          "#3f74c8",
+          "#6b95d8",
+          "#98b6e6"
+        ]
+      },
+      "a-think": {
+        "role": "secondary",
+        "displayName": "Thinking Violet",
+        "canonical": "#8455c9",
+        "tonalRamp": [
+          "#1f1230",
+          "#341d52",
+          "#492875",
+          "#5b3691",
+          "#6e44ad",
+          "#8455c9",
+          "#a37add",
+          "#c1a3ea"
+        ]
+      },
+      "baize": {
+        "role": "tertiary",
+        "displayName": "Baize Green",
+        "canonical": "#2f4c3c",
+        "tonalRamp": [
+          "#0f1913",
+          "#182720",
+          "#22362b",
+          "#2f4c3c",
+          "#375b48",
+          "#3f6853",
+          "#5c8a72",
+          "#84ad96"
+        ]
+      },
+      "cab": {
+        "role": "neutral",
+        "displayName": "Cabinet Walnut",
+        "canonical": "#221a13",
+        "tonalRamp": [
+          "#0f0b07",
+          "#17110c",
+          "#221a13",
+          "#292017",
+          "#33281d",
+          "#4a3a29",
+          "#6b5540",
+          "#8f7458"
+        ]
+      },
+      "on-cab": {
+        "role": "neutral",
+        "displayName": "On-Walnut Ivory",
+        "canonical": "#ece0cb",
+        "tonalRamp": [
+          "#3a3226",
+          "#5a4d3a",
+          "#7c6b52",
+          "#a5947d",
+          "#b3a08a",
+          "#cbbba0",
+          "#ece0cb",
+          "#f6efe0"
+        ]
+      },
+      "ivory": {
+        "role": "neutral",
+        "displayName": "Reading Ivory",
+        "canonical": "#f4ece0",
+        "tonalRamp": [
+          "#8a7d68",
+          "#a89a83",
+          "#c4b79e",
+          "#dbcdb7",
+          "#e9dece",
+          "#f4ece0",
+          "#faf5ec",
+          "#fefbf5"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Table Ink",
+        "canonical": "#241d14",
+        "tonalRamp": [
+          "#181209",
+          "#241d14",
+          "#3a3123",
+          "#5f5445",
+          "#6f6555",
+          "#8b8071",
+          "#b0a695",
+          "#d4ccbc"
+        ]
+      }
     },
     "typographyMeta": {
-      "display":  { "displayName": "Display",  "purpose": "Room titles at the head of each view; Bricolage Grotesque, condensed (wdth 84) and tightly tracked." },
-      "headline": { "displayName": "Headline", "purpose": "The chapter h1 on the ivory reading table." },
-      "title":    { "displayName": "Title",    "purpose": "Section h2, drawer titles, bay/card/slip headings; often engraved with a two-way text-shadow on wood." },
-      "body":     { "displayName": "Body",     "purpose": "Reading passages in Literata, held to a 66ch measure with opsz 16." },
-      "label":    { "displayName": "Label",    "purpose": "Uppercase, wide-tracked Azeret Mono for every datum, meta row, and engraved section marker." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Room titles at the head of each view; Bricolage Grotesque, condensed (wdth 84) and tightly tracked."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The chapter h1 on the ivory reading table."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section h2, drawer titles, bay/card/slip headings; often engraved with a two-way text-shadow on wood."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading passages in Literata, held to a 66ch measure with opsz 16."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase, wide-tracked Azeret Mono for every datum, meta row, and engraved section marker."
+      }
     },
     "shadows": [
-      { "name": "seated-furniture", "value": "0 30px 54px -34px rgba(0,0,0,1), inset 0 1px 0 rgba(255,228,180,0.07)", "purpose": "Drawer stacks and the vitrine: deep pooled shadow paired with a lit top edge." },
-      { "name": "table-lifted",     "value": "0 42px 80px -44px rgba(0,0,0,1), 0 3px 0 rgba(120,96,64,0.28)", "purpose": "The ivory reading table, lifted highest, with a warm 3px front edge." },
-      { "name": "drawer-hover",     "value": "-14px 0 22px -14px rgba(0,0,0,0.95)", "purpose": "Sideways shadow as a drawer slides out on hover/focus." },
-      { "name": "drawer-ajar",      "value": "-18px 0 26px -16px rgba(0,0,0,0.95), inset 1px 0 0 var(--baize-lit), inset 9px 0 16px -9px rgba(0,0,0,0.9)", "purpose": "A half-open drawer: deeper side shadow plus the baize edge-light that appears only when open." },
-      { "name": "paper-lifted",     "value": "0 10px 20px -16px rgba(0,0,0,0.95)", "purpose": "Catalogue cards and cross-reference slips at rest; deepens to 0 20px 30px -18px on hover." },
-      { "name": "slip-overlay",     "value": "-34px 0 62px -30px rgba(0,0,0,1)", "purpose": "The right-hand catalogue slip drawer over its blurred veil." },
-      { "name": "float-loupe",      "value": "0 14px 28px -14px rgba(0,0,0,1)", "purpose": "The floating selection loupe; the toast uses the similar 0 20px 34px -20px." }
+      {
+        "name": "seated-furniture",
+        "value": "0 30px 54px -34px rgba(0,0,0,1), inset 0 1px 0 rgba(255,228,180,0.07)",
+        "purpose": "Drawer stacks and the vitrine: deep pooled shadow paired with a lit top edge."
+      },
+      {
+        "name": "table-lifted",
+        "value": "0 42px 80px -44px rgba(0,0,0,1), 0 3px 0 rgba(120,96,64,0.28)",
+        "purpose": "The ivory reading table, lifted highest, with a warm 3px front edge."
+      },
+      {
+        "name": "drawer-hover",
+        "value": "-14px 0 22px -14px rgba(0,0,0,0.95)",
+        "purpose": "Sideways shadow as a drawer slides out on hover/focus."
+      },
+      {
+        "name": "drawer-ajar",
+        "value": "-18px 0 26px -16px rgba(0,0,0,0.95), inset 1px 0 0 var(--baize-lit), inset 9px 0 16px -9px rgba(0,0,0,0.9)",
+        "purpose": "A half-open drawer: deeper side shadow plus the baize edge-light that appears only when open."
+      },
+      {
+        "name": "paper-lifted",
+        "value": "0 10px 20px -16px rgba(0,0,0,0.95)",
+        "purpose": "Catalogue cards and cross-reference slips at rest; deepens to 0 20px 30px -18px on hover."
+      },
+      {
+        "name": "slip-overlay",
+        "value": "-34px 0 62px -30px rgba(0,0,0,1)",
+        "purpose": "The right-hand catalogue slip drawer over its blurred veil."
+      },
+      {
+        "name": "float-loupe",
+        "value": "0 14px 28px -14px rgba(0,0,0,1)",
+        "purpose": "The floating selection loupe; the toast uses the similar 0 20px 34px -20px."
+      }
     ],
     "motion": [
-      { "name": "e-out",    "value": "cubic-bezier(0.16, 0.84, 0.3, 1)", "purpose": "Default easing for hovers, fades, rises, and state transitions." },
-      { "name": "e-drawer", "value": "cubic-bezier(0.2, 0.9, 0.25, 1)", "purpose": "The furniture gesture: drawer glide and the catalogue slip's slide-in." },
-      { "name": "rise",     "value": "keyframes: from { opacity: 0; transform: translateY(7px); } — 0.38s e-out", "purpose": "The one authored gesture on the ivory table: a text block rises as extent reveals it." },
-      { "name": "slipIn",   "value": "keyframes: from { transform: translateX(100%); } — 0.42s e-drawer", "purpose": "The catalogue slip enters from the right edge." },
-      { "name": "fade",     "value": "keyframes: from { opacity: 0; } — 0.25s e-out", "purpose": "The slip veil fades up behind the panel." },
-      { "name": "reduced-motion-reset", "value": "@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }", "purpose": "Full motion reset: every animation and transition is neutralized." }
+      {
+        "name": "e-out",
+        "value": "cubic-bezier(0.16, 0.84, 0.3, 1)",
+        "purpose": "Default easing for hovers, fades, rises, and state transitions."
+      },
+      {
+        "name": "e-drawer",
+        "value": "cubic-bezier(0.2, 0.9, 0.25, 1)",
+        "purpose": "The furniture gesture: drawer glide and the catalogue slip's slide-in."
+      },
+      {
+        "name": "rise",
+        "value": "keyframes: from { opacity: 0; transform: translateY(7px); } — 0.38s e-out",
+        "purpose": "The one authored gesture on the ivory table: a text block rises as extent reveals it."
+      },
+      {
+        "name": "slipIn",
+        "value": "keyframes: from { transform: translateX(100%); } — 0.42s e-drawer",
+        "purpose": "The catalogue slip enters from the right edge."
+      },
+      {
+        "name": "fade",
+        "value": "keyframes: from { opacity: 0; } — 0.25s e-out",
+        "purpose": "The slip veil fades up behind the panel."
+      },
+      {
+        "name": "reduced-motion-reset",
+        "value": "@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }",
+        "purpose": "Full motion reset: every animation and transition is neutralized."
+      }
     ],
     "breakpoints": [
-      { "name": "wall-2col", "value": "1180px", "purpose": "Cabinet wall drops from 3 to 2 columns." },
-      { "name": "table-stack", "value": "980px", "purpose": "Reading table collapses to one column; label card un-sticks; extent dial reflows 2-up." },
-      { "name": "compact", "value": "760px", "purpose": "Rail wraps and tool labels hide; vitrine and wall go 1 column; slip full-width; rail height 54px." },
-      { "name": "hover-none", "value": "@media (hover: none)", "purpose": "Disables drawer and card hover transforms on touch." },
-      { "name": "pointer-coarse", "value": "@media (pointer: coarse)", "purpose": "44px minimum touch-target floor on chips, minis, segments, detents, tools, back/close, loupe buttons." }
+      {
+        "name": "wall-2col",
+        "value": "1180px",
+        "purpose": "Cabinet wall drops from 3 to 2 columns."
+      },
+      {
+        "name": "table-stack",
+        "value": "980px",
+        "purpose": "Reading table collapses to one column; label card un-sticks; extent dial reflows 2-up."
+      },
+      {
+        "name": "compact",
+        "value": "760px",
+        "purpose": "Rail wraps and tool labels hide; vitrine and wall go 1 column; slip full-width; rail height 54px."
+      },
+      {
+        "name": "hover-none",
+        "value": "@media (hover: none)",
+        "purpose": "Disables drawer and card hover transforms on touch."
+      },
+      {
+        "name": "pointer-coarse",
+        "value": "@media (pointer: coarse)",
+        "purpose": "44px minimum touch-target floor on chips, minis, segments, detents, tools, back/close, loupe buttons."
+      }
     ]
   },
   "components": [
@@ -57,7 +340,7 @@
       "kind": "custom",
       "refersTo": "drawer",
       "description": "A flush walnut drawer in the cabinet wall; clicking routes to its chapter on the reading table. Newest drawers stand half-open on their baize.",
-      "html": "<div class=\"ds-stack\"><button class=\"ds-drawer ds-drawer-ajar\"><span class=\"ds-drawer-in\"><svg class=\"ds-spec\" viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"#c8402f\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 40 L10 22 L20 8 L30 12 L34 30 L24 42 Z\"/><path d=\"M20 8 L22 26 L34 30\"/><path d=\"M22 26 L10 22\"/><path d=\"M22 26 L24 42\"/><path d=\"M30 12 L22 26\"/><path d=\"M34 30 L40 24 L38 14 L30 12\"/></svg><span class=\"ds-drawer-body\"><span class=\"ds-drawer-title\">Queueing theory</span><span class=\"ds-drawer-meta\"><span class=\"ds-acc\">acc. 2026\u201308</span><span class=\"ds-state ds-st-new\">NEW</span></span></span><span class=\"ds-pull\"></span></span><span class=\"ds-drawer-read\"></span></button></div>",
+      "html": "<div class=\"ds-stack\"><button class=\"ds-drawer ds-drawer-ajar\"><span class=\"ds-drawer-in\"><svg class=\"ds-spec\" viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"#c8402f\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 40 L10 22 L20 8 L30 12 L34 30 L24 42 Z\"/><path d=\"M20 8 L22 26 L34 30\"/><path d=\"M22 26 L10 22\"/><path d=\"M22 26 L24 42\"/><path d=\"M30 12 L22 26\"/><path d=\"M34 30 L40 24 L38 14 L30 12\"/></svg><span class=\"ds-drawer-body\"><span class=\"ds-drawer-title\">Queueing theory</span><span class=\"ds-drawer-meta\"><span class=\"ds-acc\">acc. 2026–08</span><span class=\"ds-state ds-st-new\">NEW</span></span></span><span class=\"ds-pull\"></span></span><span class=\"ds-drawer-read\"></span></button></div>",
       "css": ".ds-stack { border: 1px solid #4a3a29; border-radius: 3px; background: #0f0b07; overflow: hidden; box-shadow: 0 30px 54px -34px rgba(0,0,0,1), 0 1px 0 rgba(255,228,180,.07) inset; } .ds-drawer { position: relative; display: block; width: 100%; text-align: left; appearance: none; cursor: pointer; border: 0; padding: 0; background: linear-gradient(180deg, #33281d 0%, #292017 62%, #241b13 100%); color: #ece0cb; transition: transform .42s cubic-bezier(.2,.9,.25,1), box-shadow .42s cubic-bezier(.2,.9,.25,1), filter .3s cubic-bezier(.16,.84,.3,1); } .ds-drawer-ajar { transform: translateX(12px); box-shadow: -18px 0 26px -16px rgba(0,0,0,.95), inset 1px 0 0 #3f6853, inset 9px 0 16px -9px rgba(0,0,0,.9); } .ds-drawer:hover { transform: translateX(6px); filter: brightness(1.1); box-shadow: -14px 0 22px -14px rgba(0,0,0,.95); } .ds-drawer-in { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: .85rem; padding: 1.15rem 1.2rem; } .ds-spec { width: 40px; height: 40px; opacity: .92; } .ds-drawer-title { display: block; margin: 0 0 .22rem; font: 600 1.06rem/1.22 \"Bricolage Grotesque\", sans-serif; font-variation-settings: \"wdth\" 92; letter-spacing: -.012em; color: #f0e4cf; text-shadow: 0 1px 0 rgba(0,0,0,.6), 0 -1px 0 rgba(255,232,190,.07); } .ds-drawer-meta { display: flex; align-items: center; gap: .5rem; font: 400 .64rem/1.5 \"Azeret Mono\", monospace; letter-spacing: .1em; text-transform: uppercase; color: #a5947d; } .ds-acc { color: #bd9445; } .ds-state { padding: .1rem .38rem; border-radius: 2px; letter-spacing: .12em; border: 1px solid currentColor; } .ds-st-new { color: #7fc9a4; } .ds-pull { width: 30px; height: 9px; border-radius: 2px; background: linear-gradient(180deg, #edc264, #c9962f 42%, #8a6a2a); box-shadow: 0 1px 2px rgba(0,0,0,.7), 0 1px 0 rgba(255,240,205,.45) inset; } .ds-drawer-read { position: absolute; left: 0; bottom: 0; width: 100%; height: 2px; background: #c9962f; transform-origin: left; transform: scaleX(.4); }"
     },
     {
@@ -80,16 +363,16 @@
       "name": "Filter Chip",
       "kind": "chip",
       "refersTo": "chip",
-      "description": "Area filter on the cabinet wall; a rounded pill on walnut with a currentColor dot, pressed state brightens text and borders in the ink.",
-      "html": "<button class=\"ds-chip\" aria-pressed=\"true\" style=\"color:#c8402f\"><span class=\"ds-dot\"></span>Technical</button>",
-      "css": ".ds-chip { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; padding: .34rem .62rem; background: rgba(255,240,214,.045); border: 1px solid rgba(201,150,47,.22); border-radius: 999px; color: #b3a08a; font: 500 .71rem/1 \"Bricolage Grotesque\", sans-serif; letter-spacing: .02em; transition: background .2s, color .2s, border-color .2s; } .ds-chip .ds-dot { width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; } .ds-chip:hover { background: rgba(255,240,214,.1); color: #ece0cb; } .ds-chip[aria-pressed=\"true\"] { color: #ece0cb; border-color: currentColor; background: rgba(255,240,214,.11); } .ds-chip:focus-visible { outline: 2px solid #edc264; outline-offset: 2px; }"
+      "description": "Area filter on the cabinet wall. Solo-first: a plain click focuses one area, clicking the focused one clears back to all, shift-click combines. A leading \"All areas\" chip is pressed whenever nothing is soloed, and a hint line spells both gestures out.",
+      "html": "<div class=\"ds-chiprow\"><button class=\"ds-chip ds-chip-all\" aria-pressed=\"true\">All areas</button><button class=\"ds-chip\" aria-pressed=\"false\" style=\"color:#c8402f\"><span class=\"ds-dot\"></span>Technical growth</button><button class=\"ds-chip\" aria-pressed=\"false\" style=\"color:#d98a1f\"><span class=\"ds-dot\"></span>Communication</button><span class=\"ds-hint\">Click to focus one · shift-click to combine</span></div>",
+      "css": ".ds-chip { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem; padding: .34rem .62rem; background: rgba(255,240,214,.045); border: 1px solid rgba(201,150,47,.22); border-radius: 999px; color: #b3a08a; font: 500 .71rem/1 \"Bricolage Grotesque\", sans-serif; letter-spacing: .02em; transition: background .2s, color .2s, border-color .2s; } .ds-chip .ds-dot { width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; } .ds-chip:hover { background: rgba(255,240,214,.1); color: #ece0cb; } .ds-chip[aria-pressed=\"true\"] { color: #ece0cb; border-color: currentColor; background: rgba(255,240,214,.11); } .ds-chip:focus-visible { outline: 2px solid #edc264; outline-offset: 2px; } .ds-chiprow { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; } .ds-chip-all { letter-spacing: .04em; text-transform: none; } .ds-hint { color: #8d7d68; font: 400 .68rem/1.3 \"Bricolage Grotesque\", sans-serif; margin-left: .3rem; }"
     },
     {
       "name": "Catalogue Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "A specimen entry in the catalogue; ivory paper tinted with the concept's area ink, lifting and tilting slightly on hover.",
-      "html": "<button class=\"ds-card\" style=\"--t:#2b4f8c\"><span class=\"ds-card-kind\">Fundamental</span><span class=\"ds-card-term\">Little\u2019s Law</span><span class=\"ds-card-short\">Average in system = arrival rate \u00d7 average time in system.</span><span class=\"ds-card-mag\">named in 3 drawers</span></button>",
+      "description": "Catalogue entry for one concept or fundamental pattern. Cards live in an auto-fill grid with dense flow so the heaviest concepts can span two columns without leaving holes; the weight footer is pinned to the bottom so every card in a row bottoms out on the same line.",
+      "html": "<button class=\"ds-card\" style=\"--t:#2b4f8c\"><span class=\"ds-card-kind\">Fundamental</span><span class=\"ds-card-term\">Little’s Law</span><span class=\"ds-card-short\">Average in system = arrival rate × average time in system.</span><span class=\"ds-card-mag\">named in 3 drawers</span></button>",
       "css": ".ds-card { appearance: none; cursor: pointer; text-align: left; position: relative; padding: .7rem .85rem .75rem; background: linear-gradient(178deg, color-mix(in srgb, var(--t) 7%, #fbf6ec), color-mix(in srgb, var(--t) 4%, #ebdfcc)); border: 1px solid color-mix(in srgb, var(--t) 24%, #c9b99d); border-radius: 2px; color: #241d14; max-width: 27ch; box-shadow: 0 10px 20px -16px rgba(0,0,0,.95); transition: transform .22s cubic-bezier(.16,.84,.3,1), box-shadow .22s cubic-bezier(.16,.84,.3,1); } .ds-card:hover { transform: translateY(-3px) rotate(-.35deg); box-shadow: 0 20px 30px -18px rgba(0,0,0,.95); } .ds-card-kind { font: 500 .58rem/1 \"Azeret Mono\", monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--t); } .ds-card-term { display: block; margin: .28rem 0 .3rem; font: 600 1rem/1.2 \"Bricolage Grotesque\", sans-serif; font-variation-settings: \"wdth\" 92; letter-spacing: -.015em; color: #241d14; } .ds-card-short { display: block; font: 400 .8rem/1.42 \"Literata\", Georgia, serif; color: #5f5445; } .ds-card-mag { display: block; margin-top: .45rem; font: 400 .6rem/1 \"Azeret Mono\", monospace; letter-spacing: .1em; color: #6f6555; } .ds-card:focus-visible { outline: 2px solid #edc264; outline-offset: 2px; }"
     },
     {
@@ -104,51 +387,110 @@
       "name": "Inline Concept Term",
       "kind": "custom",
       "refersTo": "body",
-      "description": "A concept reference woven into reading prose; its computed importance (tier 1\u20134) is encoded in the underline weight and, at the top tier, small caps.",
-      "html": "<p class=\"ds-read-p\">Wait time explodes as a queue approaches <button class=\"ds-term ds-w4\" style=\"--t:#8f2a1d\">utilization</button>, which <button class=\"ds-term ds-w2\" style=\"--t:#2b4f8c\">Little\u2019s Law</button> makes precise.</p>",
+      "description": "A concept reference woven into reading prose; its computed importance (tier 1–4) is encoded in the underline weight and, at the top tier, small caps.",
+      "html": "<p class=\"ds-read-p\">Wait time explodes as a queue approaches <button class=\"ds-term ds-w4\" style=\"--t:#8f2a1d\">utilization</button>, which <button class=\"ds-term ds-w2\" style=\"--t:#2b4f8c\">Little’s Law</button> makes precise.</p>",
       "css": ".ds-read-p { font: 400 1.14rem/1.63 \"Literata\", Georgia, serif; font-variation-settings: \"opsz\" 16; color: #2b2317; max-width: 66ch; } .ds-term { appearance: none; background: none; border: 0; padding: 0; cursor: pointer; font: inherit; color: var(--t, #241d14); text-decoration: underline; text-underline-offset: .17em; text-decoration-color: color-mix(in srgb, var(--t, #241d14) 42%, transparent); border-radius: 2px; transition: background .16s, text-decoration-color .16s; } .ds-w2 { text-decoration-thickness: 1px; } .ds-w4 { text-decoration-thickness: 2.5px; font-weight: 600; font-variant-caps: all-small-caps; letter-spacing: .045em; } .ds-term:hover { background: rgba(201,150,47,.2); text-decoration-color: var(--t, #241d14); }"
+    },
+    {
+      "name": "Wall Legend",
+      "kind": "custom",
+      "refersTo": "key",
+      "description": "An open-by-default disclosure above the drawer wall that decodes every encoding on it. Each entry pairs a literal swatch with the sentence that names what it means. Dismissible, persisted, never hidden on first contact.",
+      "html": "<details class=\"ds-key\" open><summary>What the drawers are telling you</summary><div class=\"ds-keygrid\"><span class=\"ds-keyrow\"><i class=\"ds-k ds-k-depth\"></i>Drawer depth is reading length — deeper drawer, longer chapter.</span><span class=\"ds-keyrow\"><i class=\"ds-k ds-k-baize\"></i>A green baize seam down the left means the drawer stands ajar: new, or revised since you last looked.</span><span class=\"ds-keyrow\"><i class=\"ds-k ds-k-read\"></i>The brass line along the bottom is how far through it you already are.</span><span class=\"ds-keyrow\"><i class=\"ds-k ds-k-strike\"></i>A struck-through title is retiring — superseded, kept only until you have read its replacement.</span></div></details>",
+      "css": ".ds-key { border-top: 1px solid rgba(255,240,214,.07); padding-top: .7rem; } .ds-key summary { cursor: pointer; list-style: none; color: #b3a08a; font: 500 .68rem/1 \"Bricolage Grotesque\", sans-serif; letter-spacing: .12em; text-transform: uppercase; } .ds-key summary::before { content: \"\\25c7\"; margin-right: .45rem; color: #c9962f; } .ds-keygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .5rem 1.2rem; margin-top: .7rem; } .ds-keyrow { display: grid; grid-template-columns: 1.6rem 1fr; align-items: start; color: #b3a08a; font: 400 .78rem/1.45 \"Literata\", Georgia, serif; } .ds-k { margin-top: .35rem; } .ds-k-depth { width: 1.1rem; height: .62rem; background: linear-gradient(180deg,#3a2a18,#2a1d10); border-radius: 2px; } .ds-k-baize { width: 3px; height: .9rem; background: #2e8f74; border-radius: 1px; } .ds-k-read { width: 1.1rem; height: 2px; background: #c9962f; margin-top: .6rem; } .ds-k-strike { width: 1.1rem; height: 1px; background: #b9564c; margin-top: .6rem; }"
+    },
+    {
+      "name": "Provenance List",
+      "kind": "custom",
+      "refersTo": "prov",
+      "description": "The numbered source list closing every chapter, set on the ivory table. An entry becomes a brass link when it has a URL and stays plain text when it does not — a citation without a link is a first-class citation, never a fabricated one.",
+      "html": "<section class=\"ds-prov\"><h3>Where this came from</h3><ol class=\"ds-provlist\"><li><a href=\"#\">OneLake shortcuts — Microsoft Learn</a><span class=\"ds-provnote\">Limits: 100,000 per item, 10 per path, 5 chained links.</span><span class=\"ds-provhost\">learn.microsoft.com</span></li><li><span class=\"ds-provcite\">Little, J. D. C. (2011). Little's Law as viewed on its 50th anniversary.</span></li></ol></section>",
+      "css": ".ds-prov { border-top: 1px solid rgba(60,42,20,.16); padding-top: .9rem; color: #3c2f1e; } .ds-prov h3 { font: 500 .68rem/1 \"Bricolage Grotesque\", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #7a6549; margin: 0 0 .7rem; } .ds-provlist { list-style: none; margin: 0; padding: 0; counter-reset: p; } .ds-provlist li { display: grid; grid-template-columns: 1.9rem 1fr; margin-bottom: .55rem; counter-increment: p; } .ds-provlist li::before { content: counter(p); grid-column: 1; grid-row: 1; font: 400 .74rem/1.5 \"Azeret Mono\", monospace; color: #a08a63; } .ds-provlist li > * { grid-column: 2; } .ds-provlist a { color: #8a6b1f; text-decoration: underline; text-underline-offset: 2px; font: 400 .88rem/1.5 \"Literata\", Georgia, serif; } .ds-provcite { font: 400 .88rem/1.5 \"Literata\", Georgia, serif; } .ds-provnote { display: block; font: 400 .8rem/1.45 \"Literata\", Georgia, serif; color: #6a5842; } .ds-provhost { display: block; font: 400 .68rem/1.4 \"Azeret Mono\", monospace; color: #a08a63; }"
     }
   ],
   "narrative": {
     "northStar": "The Cabinet of Curiosities",
-    "overview": "Living Book is a private collection housed in a piece of furniture, not a reading app. The room and its cabinet are dark walnut; drawers of unequal depth sit flush in a wall, each fitted with a brass hairline pull. Pulling a drawer brings its chapter to rest on the single warm ivory reading table \u2014 the only light surface in the entire room. Baize-green linings only flash into view along the edge of a drawer that stands half-open. The pleasure is spatial and tactile: you find queueing theory filed beside memory research because they happen to share a wall, and you refuse the left-rail-contents-beside-a-cream-column arrangement of every other reading tool.\n\nThe mood is museum-quiet, warm, and slightly analog \u2014 lamplight, brass, wood grain, and dotted rule lines instead of chrome and cards. Density is deliberate but never cramped: the vitrine and cabinet breathe at wide measure (up to 1320px), while reading prose is held to a strict 66ch. Motion is furniture motion \u2014 a drawer glides, a text block rises, a catalogue slip slides in from the right \u2014 one authored gesture per surface, nothing decorative. The system commits hard to two textures and refuses a third: there is exactly one light surface (the table), and everything else lives on walnut.\n\nThe five growth areas \u2014 Technical (primary), Communication, Learning, Memory, Thinking \u2014 each get an authored specimen plate (a hand-drawn SVG \u201cinsect\u201d pinned in the drawer) and a two-tone area ink. Importance is not decoration here: a concept\u2019s weight is computed at load and made visible four different ways, because the system asserts there is no single correct way to make importance legible.",
+    "overview": "Knowledge Cabinet is a private collection housed in a piece of furniture, not a reading app. The room and its cabinet are dark walnut; drawers of unequal depth sit flush in a wall, each fitted with a brass hairline pull. Pulling a drawer brings its chapter to rest on the single warm ivory reading table — the only light surface in the entire room. Baize-green linings only flash into view along the edge of a drawer that stands half-open. The pleasure is spatial and tactile: you find queueing theory filed beside memory research because they happen to share a wall, and you refuse the left-rail-contents-beside-a-cream-column arrangement of every other reading tool.\n\nThe mood is museum-quiet, warm, and slightly analog — lamplight, brass, wood grain, and dotted rule lines instead of chrome and cards. Density is deliberate but never cramped: the vitrine and cabinet breathe at wide measure (up to 1320px), while reading prose is held to a strict 66ch. Motion is furniture motion — a drawer glides, a text block rises, a catalogue slip slides in from the right — one authored gesture per surface, nothing decorative. The system commits hard to two textures and refuses a third: there is exactly one light surface (the table), and everything else lives on walnut.\n\nThe five growth areas — Technical (primary), Communication, Learning, Memory, Thinking — each get an authored specimen plate (a hand-drawn SVG “insect” pinned in the drawer) and a two-tone area ink. Importance is not decoration here: a concept’s weight is computed at load and made visible four different ways, because the system asserts there is no single correct way to make importance legible.",
     "keyCharacteristics": [
       "Two surfaces only: dark walnut room/cabinet, one ivory reading table.",
-      "Nearly square corners (2\u20134px) with brass hairline (1px) fittings.",
+      "Nearly square corners (2–4px) with brass hairline (1px) fittings.",
       "Three type roles: Bricolage Grotesque (display/UI), Literata (reading), Azeret Mono (data/labels).",
       "Five area inks, each in a graphic and a text-on-ivory variant.",
       "One authored gesture per surface; a full prefers-reduced-motion reset.",
       "Importance is a real, computed, four-way-encoded mechanism."
     ],
     "rules": [
-      { "name": "The Two-Surface Rule", "body": "There are exactly two material surfaces. The room, rail, cabinet wall, drawers, vitrine, catalogue controls, rounds thread, register, slip, loupe, and toast all live on walnut and use the on-cab text ramp. The reading table, label card, extent dial, figures, catalogue cards, round cards, and slip cards live on ivory and use the ink ramp. A component picks one surface and never mixes the two ramps.", "section": "colors" },
-      { "name": "The One-Metal Rule", "body": "Brass is the only metallic accent and it means \u201cactionable / current.\u201d Never introduce a second metal or spend brass on inert decoration; its scarcity is what makes a pull read as a pull.", "section": "colors" },
-      { "name": "The Read-Brass Rule", "body": "Brass that must be read uses brass-label (or brass-lit on dark); brass-dim is gradient-shadow only and never carries text.", "section": "colors" },
-      { "name": "The 66ch Rule", "body": "Reading prose (h1/h2/p/ul/aside/pre/prompt on the table) is capped at max-width: 66ch; specimens and figures are allowed the full table width (min(100%, 62rem)). The measure is achieved per-element inside a wide table, not by narrowing the whole surface.", "section": "typography" },
-      { "name": "The Three-Role Rule", "body": "Sans for display and UI, serif for reading, mono for data and labels. Never set a passage in the grotesque or a label in the serif; the typeface is the signal of what kind of text this is.", "section": "typography" },
-      { "name": "The Engraved-Label Rule", "body": "Uppercase mono micro-labels always carry wide tracking (0.1em on meta, 0.13\u20130.2em on .eng/section markers). Tracked, uppercased mono reads as an engraved plate; tight or lowercase mono reads as a value.", "section": "typography" },
-      { "name": "The Lit-Edge Rule", "body": "Every seated surface (drawer, vitrine, table, round card) pairs its pooled drop shadow with a 1px inset top highlight. Shadow alone reads as a flat cutout; the lit edge is what makes it wood or glass.", "section": "elevation" },
-      { "name": "The Baize-Only-When-Open Rule", "body": "The baize-green lining (baize-lit) is depth information, not color: it appears solely as an inset edge on a half-open drawer. Never paint baize on a closed or flat surface.", "section": "elevation" },
-      { "name": "The Hard-Corner Rule", "body": "Nothing in the interior exceeds a 4px radius except the two pill exceptions (chips, count badge). If a new surface wants a soft, rounded-card look, it is wrong for this world \u2014 go to 2\u20133px.", "section": "shapes" },
-      { "name": "The Hairline Rule", "body": "Structural separation is a 1px hairline, never a heavy divider or a filled bar. On walnut it is translucent brass; on ivory it is ivory-3, dotted when it separates rows of the same object.", "section": "shapes" }
+      {
+        "name": "The Two-Surface Rule",
+        "body": "There are exactly two material surfaces. The room, rail, cabinet wall, drawers, vitrine, catalogue controls, rounds thread, register, slip, loupe, and toast all live on walnut and use the on-cab text ramp. The reading table, label card, extent dial, figures, catalogue cards, round cards, and slip cards live on ivory and use the ink ramp. A component picks one surface and never mixes the two ramps.",
+        "section": "colors"
+      },
+      {
+        "name": "The One-Metal Rule",
+        "body": "Brass is the only metallic accent and it means “actionable / current.” Never introduce a second metal or spend brass on inert decoration; its scarcity is what makes a pull read as a pull.",
+        "section": "colors"
+      },
+      {
+        "name": "The Read-Brass Rule",
+        "body": "Brass that must be read uses brass-label (or brass-lit on dark); brass-dim is gradient-shadow only and never carries text.",
+        "section": "colors"
+      },
+      {
+        "name": "The 66ch Rule",
+        "body": "Reading prose (h1/h2/p/ul/aside/pre/prompt on the table) is capped at max-width: 66ch; specimens and figures are allowed the full table width (min(100%, 62rem)). The measure is achieved per-element inside a wide table, not by narrowing the whole surface.",
+        "section": "typography"
+      },
+      {
+        "name": "The Three-Role Rule",
+        "body": "Sans for display and UI, serif for reading, mono for data and labels. Never set a passage in the grotesque or a label in the serif; the typeface is the signal of what kind of text this is.",
+        "section": "typography"
+      },
+      {
+        "name": "The Engraved-Label Rule",
+        "body": "Uppercase mono micro-labels always carry wide tracking (0.1em on meta, 0.13–0.2em on .eng/section markers). Tracked, uppercased mono reads as an engraved plate; tight or lowercase mono reads as a value.",
+        "section": "typography"
+      },
+      {
+        "name": "The Lit-Edge Rule",
+        "body": "Every seated surface (drawer, vitrine, table, round card) pairs its pooled drop shadow with a 1px inset top highlight. Shadow alone reads as a flat cutout; the lit edge is what makes it wood or glass.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Baize-Only-When-Open Rule",
+        "body": "The baize-green lining (baize-lit) is depth information, not color: it appears solely as an inset edge on a half-open drawer. Never paint baize on a closed or flat surface.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Hard-Corner Rule",
+        "body": "Nothing in the interior exceeds a 4px radius except the two pill exceptions (chips, count badge). If a new surface wants a soft, rounded-card look, it is wrong for this world — go to 2–3px.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Hairline Rule",
+        "body": "Structural separation is a 1px hairline, never a heavy divider or a filled bar. On walnut it is translucent brass; on ivory it is ivory-3, dotted when it separates rows of the same object.",
+        "section": "shapes"
+      },
+      "Every encoding on a surface is named once, in place. The wall legend and the catalogue notes are not help text — they are part of the composition, and they open by default.",
+      "A filter is solo-first: one click focuses, one click releases. \"All selected\" and \"none selected\" normalise to the same state so the view never has two identical-looking truths.",
+      "A citation without a URL renders as plain text. Never invent a link to make a row look uniform."
     ],
     "dos": [
       "Do keep every component on exactly one surface: walnut with the on-cab ramp, or ivory with the ink ramp (The Two-Surface Rule).",
       "Do spend brass only on actionable or current elements, and pull readable brass from brass-label/brass-lit, never brass-dim.",
       "Do hold reading prose to 66ch while letting specimens and figures use the full table width.",
-      "Do keep corners hard \u2014 2px inner, 3px panels/controls, 4px only for the table/round cards/loupe; pills only for chips and the count badge.",
-      "Do separate with 1px hairlines (translucent brass on walnut, ivory-3 \u2014 dotted for same-object rows \u2014 on ivory) and pair every seated surface with a 1px inset lit edge.",
+      "Do keep corners hard — 2px inner, 3px panels/controls, 4px only for the table/round cards/loupe; pills only for chips and the count badge.",
+      "Do separate with 1px hairlines (translucent brass on walnut, ivory-3 — dotted for same-object rows — on ivory) and pair every seated surface with a 1px inset lit edge.",
       "Do keep type in its role: Bricolage for display/UI, Literata for reading, Azeret Mono (tracked, uppercased) for labels and data.",
       "Do give motion one authored gesture per surface (drawer glides, block rises, slip slides) and honor the full prefers-reduced-motion reset.",
       "Do encode concept importance with the real --mag / --warm mechanism (size / lamplight / engraving / threads), not ad-hoc emphasis."
     ],
     "donts": [
-      "Don\u2019t introduce a second light surface or a second metal \u2014 the ivory table and brass are each singular.",
-      "Don\u2019t show baize green anywhere except as the inset edge of a half-open drawer.",
-      "Don\u2019t use rounded-card radii (\u22656px), drop shadows without a lit edge, or heavy/filled dividers.",
-      "Don\u2019t set a passage in the grotesque or a label in the serif; don\u2019t leave uppercase mono labels untracked.",
-      "Don\u2019t put a left-rail contents list beside a cream essay column \u2014 that reading-app arrangement is the explicit anti-reference.",
-      "Don\u2019t hard-code area-ink hex in new code paths; the --a-* tokens are the source of truth. Known duplication: app.js carries an INK map restating the --a-* graphic and -t text values, and content.js areas[].ink holds a third, slightly different set used only in the content model \u2014 reconcile to the CSS tokens rather than adding a fourth."
+      "Don’t introduce a second light surface or a second metal — the ivory table and brass are each singular.",
+      "Don’t show baize green anywhere except as the inset edge of a half-open drawer.",
+      "Don’t use rounded-card radii (≥6px), drop shadows without a lit edge, or heavy/filled dividers.",
+      "Don’t set a passage in the grotesque or a label in the serif; don’t leave uppercase mono labels untracked.",
+      "Don’t put a left-rail contents list beside a cream essay column — that reading-app arrangement is the explicit anti-reference.",
+      "Don’t hard-code area-ink hex in new code paths; the --a-* tokens are the source of truth. Known duplication: app.js carries an INK map restating the --a-* graphic and -t text values, and content.js areas[].ink holds a third, slightly different set used only in the content model — reconcile to the CSS tokens rather than adding a fourth."
     ]
   }
 }

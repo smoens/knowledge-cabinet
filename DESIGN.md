@@ -1,5 +1,5 @@
 ---
-name: Living Book
+name: Knowledge Cabinet
 description: A walnut cabinet of concepts — drawers of chapters over one ivory reading table, brass fittings, baize linings.
 colors:
   cab: "#221a13"
@@ -121,13 +121,13 @@ components:
     padding: "0.44rem 0.72rem"
 ---
 
-# Design System: Living Book
+# Design System: Knowledge Cabinet
 
 ## Overview
 
 **Creative North Star: "The Cabinet of Curiosities"**
 
-Living Book is a private collection housed in a piece of furniture, not a reading app. The room and its cabinet are dark walnut; drawers of unequal depth sit flush in a wall, each fitted with a brass hairline pull. Pulling a drawer brings its chapter to rest on the single warm ivory reading table — the only light surface in the entire room. Baize-green linings only flash into view along the edge of a drawer that stands half-open. The pleasure is spatial and tactile: you find queueing theory filed beside memory research because they happen to share a wall, and you refuse the left-rail-contents-beside-a-cream-column arrangement of every other reading tool.
+Knowledge Cabinet is a private collection housed in a piece of furniture, not a reading app. The room and its cabinet are dark walnut; drawers of unequal depth sit flush in a wall, each fitted with a brass hairline pull. Pulling a drawer brings its chapter to rest on the single warm ivory reading table — the only light surface in the entire room. Baize-green linings only flash into view along the edge of a drawer that stands half-open. The pleasure is spatial and tactile: you find queueing theory filed beside memory research because they happen to share a wall, and you refuse the left-rail-contents-beside-a-cream-column arrangement of every other reading tool.
 
 The mood is museum-quiet, warm, and slightly analog — lamplight, brass, wood grain, and dotted rule lines instead of chrome and cards. Density is deliberate but never cramped: the vitrine and cabinet breathe at wide measure (up to 1320px), while reading prose is held to a strict 66ch. Motion is furniture motion — a drawer glides, a text block rises, a catalogue slip slides in from the right — one authored gesture per surface, nothing decorative. The system commits hard to two textures and refuses a third: there is exactly one light surface (the table), and everything else lives on walnut.
 
@@ -267,12 +267,24 @@ Borders are **hairlines**: 1px is the near-universal stroke, drawn in translucen
 ### Chips (filters)
 - **Style:** Pill (`{rounded.pill}`), faint ivory-wash fill on walnut, `on-cab-2` text, translucent-brass 1px border, a small `currentColor` dot.
 - **State:** `aria-pressed="true"` brightens text to `on-cab` and sets the border to `currentColor`. Segmented controls (`.seg`) are the square sibling: pressed segment fills with the brass gradient.
+- **Semantics — solo-first.** A plain click *solos* one area; clicking the soloed area clears back to all. Shift/Cmd/Ctrl-click adds or removes. Selecting every area normalises back to the empty (all) state, so "everything selected" and "nothing selected" are never two different-looking versions of the same view. A leading `.chip-all` reads "All areas" and is pressed whenever nothing is soloed, and a `.filter-hint` in `on-cab-3` spells the two gestures out rather than leaving them to be discovered.
 
 ### Cards (catalogue)
 - **Corner Style:** 2px (`{rounded.xs}`) — hard paper.
 - **Background:** Ivory tinted with the concept's area ink via `color-mix` (~4–7% ink into ivory); border is ~24% ink into `#c9b99d`.
 - **Shadow:** Lifted-paper (`0 10px 20px -16px`), deepening and rotating -0.35° on hover.
-- **Weight encodings:** `.cards.enc-size` scales the term font by `--mag`; `.enc-lamp` warms the card background/glow by `--warm`; `.enc-engrave` thickens weight, width axis, border, and emboss by `--mag`. (Threads renders as an SVG map instead.)
+- **Layout:** A `repeat(auto-fill, minmax(14.5rem, 1fr))` grid with `grid-auto-flow: dense` and `align-items: stretch`. Cards are column flex containers with the `.card-mag` footer pushed down by `margin-top:auto`, so every card in a row bottoms out on the same line. `dense` is load-bearing: without it the span-2 cards leave holes in the mosaic.
+- **Weight encodings:** `.cards.enc-size` promotes the heaviest concepts to `grid-column: span 2` (tier 3) and `span 2 / row span 2` (tier 4) rather than only scaling type; `.enc-lamp` warms the card background/glow by `--warm`; `.enc-engrave` thickens weight, width axis, border, and emboss by `--mag`. (Threads renders as an SVG map instead.)
+- **Explanation, not mystery.** The encoding and order controls are each followed by a `.cat-note` in `on-cab-2` that states in one sentence what the current choice means. A `.empty` panel handles a filter combination with no matches.
+
+### Legend (`.key`)
+- **Character:** A `<details>` above the drawer wall, **open by default**, titled "What the drawers are telling you". Four-column `.key-grid` on desktop, collapsing to two then one. Each entry pairs a literal swatch — a depth block, a baize seam, a brass read-line, a strikethrough rule, a specimen-plate ring — with the sentence that decodes it.
+- **Why:** Every encoding on the wall is legible only if it is named once. The open state persists in `S.key`, so it can be dismissed permanently but is never hidden on first contact.
+
+### Provenance (`.prov`)
+- **Character:** A numbered source list closing every chapter, set on the ivory table in `{typography.mono}` numerals in a fixed 1.9rem column. Entries render as brass links when a `url` is present and as plain `.prov-cite` text when it is not; an optional `.prov-note` and a derived `.prov-host` sit beneath.
+- **Rule:** A citation without a link is a first-class citation. Never fabricate a URL to make the row look uniform.
+- **Gotcha:** The counter `::before` needs explicit `grid-column: 1; grid-row: 1` and the children explicit `grid-column: 2`, or auto-placement drops the note into the number column and sets it one word per line.
 
 ### Inputs / Fields
 - **Extent dial (`.dial`):** A custom `range` styled as a brass-knurled slider on a `cbbca4 → e6dcca` recessed track; the 22px thumb is a brass gradient with a knurl texture and inset highlight. Backed by four labeled **detents** (Spine / Working / Full / Source) that highlight the current step in brass-wash.
