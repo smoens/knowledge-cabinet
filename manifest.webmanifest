@@ -1,0 +1,17 @@
+{
+  "name": "Knowledge Cabinet",
+  "short_name": "Cabinet",
+  "description": "A personal cabinet of concepts: chapters arrive and retire, extent is a dial, every term opens its catalogue entry, and what you read comes back for a condition check.",
+  "start_url": "./index.html#case",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a1109",
+  "theme_color": "#1a1109",
+  "categories": ["books", "education", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

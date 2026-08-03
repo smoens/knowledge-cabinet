@@ -1,0 +1,30 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax-check the scripts
+        run: |
+          node --check app.js
+          node --check content.js
+          node --check figures.js
+          node --check sw.js
+
+      - name: Check the content model holds together
+        run: node .github/scripts/check-content.mjs

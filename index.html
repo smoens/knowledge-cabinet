@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Living Book — a collection that keeps moving</title>
+<meta name="description" content="A personal cabinet of concepts: chapters arrive and retire, extent is a dial, every term opens its catalogue entry, and what you read comes back for a condition check.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#1a1109">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cabinet">
+<link rel="preload" href="fonts/bricolage-normal-300_800.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/literata-normal-300_700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="cabinet.css">
+</head>
+<body>
+<!--
+THESIS: A personal collection where the pleasure is pulling a drawer and finding queueing theory filed beside memory research; it refuses the reading-app arrangement of a left-rail contents list beside a cream essay column.
+OWN-WORLD: Walnut cabinetwork with flush drawers and brass hairline fittings, baize-green linings that only show when a drawer is open, authored specimen plates per growth area, and one warm ivory reading table that is the only light surface in the room.
+STORY: She sees what arrived and what is due for a condition check, pulls a drawer, and it comes to rest on the table at reading width; she sets the extent, drills any specimen name into its catalogue entry, and files it for the next round.
+FIRST VIEWPORT: Brass rail across the head; a glass vitrine of three unequal bays holding rounds due, latest accession, and where she stopped; beneath it the cabinet wall of flush drawers of unequal depth, the newest standing half-open on their baize.
+FORM: Cabinet of curiosities, candidate 7 of the grounded list, seed key 4781c692.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="sp-tech" viewBox="0 0 48 48">
+      <path d="M14 40 L10 22 L20 8 L30 12 L34 30 L24 42 Z"/>
+      <path d="M20 8 L22 26 L34 30"/><path d="M22 26 L10 22"/><path d="M22 26 L24 42"/>
+      <path d="M30 12 L22 26"/><path d="M34 30 L40 24 L38 14 L30 12"/>
+    </symbol>
+    <symbol id="sp-comm" viewBox="0 0 48 48">
+      <path d="M39 12c-9-6-22-4-27 5s0 20 9 22c7 1.6 12-2 12-7 0-4.4-3.4-7-7-7-3 0-5 1.8-5 4.2 0 2 1.5 3.4 3.3 3.4"/>
+      <path d="M39 12c4 5 5 12 3 18"/>
+      <path d="M12 17c5-5 13-6 19-3"/>
+      <path d="M11 25c4-4 10-5 15-3"/>
+    </symbol>
+    <symbol id="sp-learn" viewBox="0 0 48 48">
+      <path d="M24 44C24 30 22 16 14 6"/>
+      <path d="M21 34c-5 1-9-1-11-5 4-2 8-1 11 5Z"/>
+      <path d="M20 27c-5 0-8-3-9-7 4-1 8 1 9 7Z"/>
+      <path d="M18 20c-4-1-6-4-6-8 4 0 7 3 6 8Z"/>
+      <path d="M23 35c5 1 9-1 11-5-4-2-8-1-11 5Z"/>
+      <path d="M22 28c5 0 8-3 9-7-4-1-8 1-9 7Z"/>
+      <path d="M20 21c4-1 6-4 6-8-4 0-7 3-6 8Z"/>
+      <path d="M14 6c1.5 2 2 4.5 1.6 7"/>
+    </symbol>
+    <symbol id="sp-mem" viewBox="0 0 48 48">
+      <path d="M24 16v20"/>
+      <path d="M24 17c-3-6-9-9-14-8-3 .6-4 4-2 8 2.4 4.8 8 8 12 8"/>
+      <path d="M24 25c-2.6 6-7 10-11 11-3 .8-5-1.6-4-5 1-3.4 6-7 11-8"/>
+      <path d="M24 17c3-6 9-9 14-8 3 .6 4 4 2 8-2.4 4.8-8 8-12 8"/>
+      <path d="M24 25c2.6 6 7 10 11 11 3 .8 5-1.6 4-5-1-3.4-6-7-11-8"/>
+      <path d="M22 14c-1-3-3-5-5-6M26 14c1-3 3-5 5-6"/>
+      <circle cx="15" cy="18" r="2"/><circle cx="33" cy="18" r="2"/>
+    </symbol>
+    <symbol id="sp-think" viewBox="0 0 48 48">
+      <path d="M41 26a17 17 0 1 1-9.6-15.3"/>
+      <path d="M35 26a11 11 0 1 1-6.2-9.9"/>
+      <path d="M30 26a6 6 0 1 1-3.4-5.4"/>
+      <path d="M26.6 26a2.6 2.6 0 1 1-1.5-2.3"/>
+      <path d="M24 9v6M35.5 13.5 31 18M41 26h-6M24 43v-6M12.5 38.5 17 34M7 26h6M12.5 13.5 17 18"/>
+    </symbol>
+
+    <symbol id="i-die" viewBox="0 0 24 24">
+      <rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/>
+      <circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/>
+      <circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/>
+      <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>
+      <circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/>
+      <circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/>
+    </symbol>
+    <symbol id="i-loupe" viewBox="0 0 24 24">
+      <circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 20.5 20.5"/>
+    </symbol>
+    <symbol id="i-lamp" viewBox="0 0 24 24">
+      <path d="M12 3a6 6 0 0 0-3.4 11c.6.4 1 1.1 1 1.9v.6h4.8v-.6c0-.8.4-1.5 1-1.9A6 6 0 0 0 12 3Z"/>
+      <path d="M9.6 19.5h4.8M10.4 21.5h3.2"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M5.5 5.5 18.5 18.5M18.5 5.5 5.5 18.5"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M11 6 5 12l6 6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24">
+      <path d="M9 3.5h6l-1 5 3.5 3.5-6 .5-.5 8-.5-8-6-.5L8 8.5Z"/>
+    </symbol>
+    <symbol id="i-thread" viewBox="0 0 24 24">
+      <circle cx="5.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><circle cx="9" cy="18.5" r="2.2"/>
+      <path d="M7.6 6.8 16.5 9.4M17.5 12l-7 5M8 16.4 6.2 8.2"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5 9.5 17.5 19.5 6.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24">
+      <path d="M11.6 3.5H20.5v8.9l-9 9L2.6 12.5Z"/><circle cx="16.6" cy="7.4" r="1.6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#stage">Skip to the collection</a>
+
+<div class="room" id="room">
+  <header class="rail">
+    <div class="rail-mark">
+      <span class="rail-title">Living Book</span>
+      <span class="rail-sub" id="railSub">private collection</span>
+    </div>
+    <nav class="rail-cases" aria-label="Cases">
+      <button class="plate" data-view="case" aria-current="true">Cabinet</button>
+      <button class="plate" data-view="catalogue">Catalogue</button>
+      <button class="plate" data-view="rounds">Rounds<span class="plate-count" id="dueBadge" hidden></span></button>
+      <button class="plate" data-view="register">Register</button>
+    </nav>
+    <div class="rail-tools">
+      <button class="tool" id="randomBtn" title="Open a drawer at random">
+        <svg class="ic"><use href="#i-die"></use></svg><span>Random</span>
+      </button>
+      <button class="tool" id="lampBtn" title="Raise the lamp: brightens the room and lifts cabinet text for longer sessions" aria-pressed="false">
+        <svg class="ic"><use href="#i-lamp"></use></svg><span id="lampLabel">Lamp up</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="stage" tabindex="-1">
+    <section class="view" id="view-case" data-view="case"></section>
+    <section class="view" id="view-table" data-view="table" hidden></section>
+    <section class="view" id="view-catalogue" data-view="catalogue" hidden></section>
+    <section class="view" id="view-rounds" data-view="rounds" hidden></section>
+    <section class="view" id="view-register" data-view="register" hidden></section>
+  </main>
+</div>
+
+<div class="loupe" id="loupe" hidden role="toolbar" aria-label="Selection actions">
+  <button data-act="drill"><svg class="ic"><use href="#i-loupe"></use></svg>Drill down</button>
+  <button data-act="round"><svg class="ic"><use href="#i-pin"></use></svg>Add to rounds</button>
+</div>
+
+<aside class="slip" id="slip" hidden aria-label="Catalogue entry" role="dialog" aria-modal="true"></aside>
+<div class="slip-veil" id="slipVeil" hidden></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="content.js"></script>
+<script src="figures.js"></script>
+<script src="app.js"></script>
+<script>
+/* Offline shell. Service workers need a secure context, so this is a no-op on
+   plain http — the book still works, it just is not installable there. */
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>
