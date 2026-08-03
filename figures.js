@@ -1,4 +1,4 @@
-/* Living Book — the explorables that sit in vitrines on the reading table.
+/* Knowledge Cabinet — the explorables that sit in vitrines on the reading table.
    No dependencies. Every figure redraws from a small honest model whose
    constants are printed next to the result. */
 (function () {

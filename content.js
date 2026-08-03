@@ -1,4 +1,4 @@
-/* Living Book — content source.
+/* Knowledge Cabinet — content source.
    Chapters and concepts are data. Adding, revising, or retiring a chapter is an
    edit to this file only; nothing in the markup names a chapter.
 
@@ -12,7 +12,7 @@
 */
 window.BOOK = {
   meta: {
-    title: 'Living Book',
+    title: 'Knowledge Cabinet',
     subtitle: 'A book that keeps moving',
     reader: 'Sarah',
     compiled: '2026-08-03'

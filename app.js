@@ -1,4 +1,4 @@
-/* Living Book — the cabinet's working parts.
+/* Knowledge Cabinet — the cabinet's working parts.
    Classic script, no build step, no dependencies. State in localStorage. */
 (function () {
   'use strict';
