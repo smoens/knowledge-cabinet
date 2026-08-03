@@ -492,16 +492,16 @@
         '<div><span class="lc-area" style="color:' + ink(ch.area, true) + '">' + esc(A[ch.area].name) + '</span>' +
         '<p class="lc-title">' + esc(ch.title) + '</p></div>' +
       '</div>' +
-      '<div class="lc-rows">' + rows.map(function (p) {
-        return '<div><span>' + esc(p[0]) + '</span><b>' + esc(p[1]) + '</b></div>';
-      }).join('') + '</div>' +
+      '<p class="lc-rows">' + rows.map(function (p) {
+        return esc(p[0]) + ' <b>' + esc(p[1]) + '</b>';
+      }).join(' <i>·</i> ') + '</p>' +
       '<div class="extent">' +
         '<span class="eng">Extent</span>' +
         '<input class="dial" type="range" min="1" max="4" step="1" value="' + S.extent + '" aria-label="Reading extent, 1 spine to 4 source">' +
         '<div class="detents">' + [1, 2, 3, 4].map(function (d) {
-          return '<button class="detent" data-d="' + d + '" aria-current="' + (S.extent === d) + '">' +
-            '<b>' + EXTENT[d].name + '</b><span>' + EXTENT[d].note + '</span></button>';
+          return '<button class="detent" data-d="' + d + '" aria-current="' + (S.extent === d) + '">' + EXTENT[d].name + '</button>';
         }).join('') + '</div>' +
+        '<p class="extent-note">' + esc(EXTENT[S.extent].note) + '</p>' +
       '</div>';
   }
 
@@ -514,10 +514,12 @@
 
   function wireExtent(ch) {
     var dial = $('.dial');
+    var note = $('.extent-note');
     function set(d) {
       S.extent = d; save();
       dial.value = d;
       $$('.detent').forEach(function (b) { b.setAttribute('aria-current', String(+b.dataset.d === d)); });
+      if (note) note.textContent = EXTENT[d].note;
       paint(ch);
     }
     dial.addEventListener('input', function () { set(+dial.value); });

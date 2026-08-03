@@ -2,7 +2,7 @@
    Cache-first for the shell so the book opens on a plane, on a train, and on
    an iPad with no signal. Bump SHELL when any shell file changes: the old
    cache is dropped wholesale on activate, so there is no partial-update state. */
-var SHELL = 'cabinet-shell-v4';
+var SHELL = 'cabinet-shell-v7';
 
 var FILES = [
   './',
