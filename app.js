@@ -8,6 +8,15 @@
   var TODAY = new Date().toISOString().slice(0, 10);
   var REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* ── Cross-device sync: the repo's own "data" branch is the backend, so
+     there is no separate service to run. Reads are an unauthenticated fetch
+     of a public raw file; writes need a token (fine-grained PAT, this repo
+     only, Contents: read+write) pasted once in the register and kept in
+     localStorage. Everything else — debounce, sha caching, conflict retry —
+     is plain fetch(), no dependency. */
+  var SYNC = { owner: 'smoens', repo: 'knowledge-cabinet', branch: 'data', path: 'data/record.json' };
+  var TOKEN_KEY = 'livingbook.token';
+
   var EXTENT = [
     null,
     { name: 'Spine', note: 'The claim and nothing else.' },
@@ -22,7 +31,7 @@
   function blank() {
     return {
       extent: 3, lamp: 0, focus: [], enc: 'size', sort: 'mag', kind: 'all', key: true,
-      read: {}, met: {}, cards: {}, days: {}, log: [], provisional: {}, lastOpen: null
+      read: {}, met: {}, cards: {}, days: {}, log: [], provisional: {}, lastOpen: null, updatedAt: 0
     };
   }
   function load() {
@@ -40,14 +49,91 @@
     saveTimer = setTimeout(function () {
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
     }, 220);
+    scheduleSync();
   }
   function logEvent(kind, label, meta) {
     S.log.unshift({ t: Date.now(), kind: kind, label: label, meta: meta || '' });
     if (S.log.length > 60) S.log.length = 60;
   }
-  /* Manual export/import: a JSON file is the whole sync story — no server,
-     no account, no dependency. Carrying the record between devices is a
-     deliberate act, not a background sync. */
+
+  /* ── Sync: repo's own "data" branch, no separate service ─────────────── */
+  function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }
+  function setToken(t) { if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY); }
+  var sync = { state: getToken() ? 'idle' : 'off', at: null, sha: null, dirty: false };
+  var syncTimer = null;
+  function syncNote(state) { sync.state = state; sync.at = Date.now(); renderSyncStatus(); }
+  function syncStatusText() {
+    if (!getToken()) return 'Not connected — record stays on this device only.';
+    var when = sync.at ? new Date(sync.at).toLocaleTimeString() : null;
+    if (sync.state === 'pulling') return 'Checking for updates\u2026';
+    if (sync.state === 'pushing') return 'Syncing\u2026';
+    if (sync.state === 'error') return 'Sync failed — check the token\u2019s permissions.';
+    if (sync.state === 'ok') return when ? ('Synced at ' + when + '.') : 'Connected.';
+    return 'Connected.';
+  }
+  function renderSyncStatus() { var el = $('#sync-status'); if (el) el.textContent = syncStatusText(); }
+
+  /* Pull once at boot: unauthenticated read of the public raw file. Newer
+     wins by updatedAt — simplest possible merge for a single-reader record. */
+  function pullRemote() {
+    if (!getToken()) return;
+    syncNote('pulling');
+    var url = 'https://raw.githubusercontent.com/' + SYNC.owner + '/' + SYNC.repo + '/' + SYNC.branch + '/' + SYNC.path + '?t=' + Date.now();
+    fetch(url).then(function (r) { if (!r.ok) throw new Error('no remote yet'); return r.json(); })
+      .then(function (remote) {
+        if (remote && typeof remote === 'object' && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
+          var d = blank();
+          for (var k in d) if (remote[k] !== undefined) d[k] = remote[k];
+          S = d;
+          try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+          renderRegister(); renderCase();
+        }
+        syncNote('ok');
+      })
+      .catch(function () { syncNote(getToken() ? 'ok' : 'off'); });
+  }
+  function scheduleSync() {
+    sync.dirty = true;
+    if (!getToken()) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(pushRemote, 8000);
+  }
+  /* Push: GET the current sha once per session (cached after that), PUT the
+     record, retry once on a 409 (another device wrote in between). */
+  function pushRemote() {
+    var token = getToken();
+    if (!token) return;
+    sync.dirty = false;
+    syncNote('pushing');
+    var api = 'https://api.github.com/repos/' + SYNC.owner + '/' + SYNC.repo + '/contents/' + SYNC.path;
+    var authHeaders = { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' };
+    var shaLookup = sync.sha ? Promise.resolve(sync.sha) :
+      fetch(api + '?ref=' + SYNC.branch, { headers: authHeaders })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (info) { return info && info.sha; });
+    shaLookup.then(function (sha) {
+      S.updatedAt = Date.now();
+      var body = { message: 'Update reading record', branch: SYNC.branch,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(S)))) };
+      if (sha) body.sha = sha;
+      return fetch(api, {
+        method: 'PUT',
+        headers: { Authorization: authHeaders.Authorization, Accept: authHeaders.Accept, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    }).then(function (r) {
+      if (r.status === 409) { sync.sha = null; return pushRemote(); }
+      if (!r.ok) throw new Error('push failed: ' + r.status);
+      return r.json();
+    }).then(function (res) {
+      if (res && res.content) sync.sha = res.content.sha;
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+      syncNote('ok');
+    }).catch(function () { syncNote('error'); });
+  }
+
+  /* Manual export/import stays as a portable backup alongside the automatic
+     sync above — a JSON file with no server, no account, no dependency. */
   function exportRecord() {
     var blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
@@ -977,7 +1063,16 @@
             '<b>' + esc(e.label) + '</b><em style="color:' + (e.kind === 'round' ? '#7fc9a4' : '#c9962f') + '">' + esc(e.kind) + (e.meta ? ' · ' + esc(e.meta) : '') + '</em></div>';
         }).join('') : '<div class="log-row"><time>—</time><b>Nothing recorded yet</b><em>idle</em></div>') + '</div>' +
 
-        '<div class="btn-row" style="margin-top:2rem">' +
+        '<span class="eng" style="display:block;margin:1.6rem 0 .6rem">Sync across devices</span>' +
+        '<p style="margin:0 0 .6rem;font-size:.9rem;color:var(--on-cab-2)">Paste a GitHub fine-grained token for this repo only (Contents: read and write). It syncs silently afterward through a dedicated data branch — stored on this device only.</p>' +
+        '<div class="btn-row">' +
+          '<input type="password" id="sync-token" placeholder="github_pat_\u2026" value="' + esc(getToken()) + '" style="flex:1 1 12rem;min-width:10rem">' +
+          '<button class="btn" id="sync-connect">' + (getToken() ? 'Update token' : 'Connect') + '</button>' +
+          (getToken() ? '<button class="btn" id="sync-disconnect">Disconnect</button>' : '') +
+        '</div>' +
+        '<p id="sync-status" style="margin:.5rem 0 0;font-size:.85rem;color:var(--on-cab-2)">' + esc(syncStatusText()) + '</p>' +
+
+        '<div class="btn-row" style="margin-top:1.4rem">' +
           '<button class="btn" id="export-record">Export record</button>' +
           '<button class="btn" id="import-record">Import record\u2026</button>' +
           '<input type="file" id="import-file" accept="application/json" hidden>' +
@@ -985,6 +1080,16 @@
         '</div>' +
       '</div>';
 
+    $('#sync-connect').addEventListener('click', function () {
+      var v = $('#sync-token').value.trim();
+      setToken(v);
+      renderRegister();
+      if (v) { toast('Token saved. Syncing\u2026'); pullRemote(); pushRemote(); }
+      else toast('Token cleared.');
+    });
+    if ($('#sync-disconnect')) $('#sync-disconnect').addEventListener('click', function () {
+      setToken(''); toast('Disconnected. Record stays local.'); renderRegister();
+    });
     $('#export-record').addEventListener('click', exportRecord);
     $('#import-record').addEventListener('click', function () { $('#import-file').click(); });
     $('#import-file').addEventListener('change', function (e) {
@@ -1195,8 +1300,12 @@
   window.addEventListener('beforeunload', function () {
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (err) {}
   });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden' && sync.dirty && getToken()) pushRemote();
+  });
 
   applyLamp();
   wireSlip();
   fromHash(true);
+  pullRemote();
 })();

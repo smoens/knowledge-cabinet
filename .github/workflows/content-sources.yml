@@ -1,0 +1,42 @@
+# Content Watch — source list
+#
+# Read by the "Content watch" workflow (.github/workflows/content-watch.md), which runs daily and reports new items from every source with `active: true`.
+#
+# HOW TO ADD A SOURCE
+#   1. Append an entry below with a unique `id`, the feed/page `url`, and `active: true`.
+#   2. If the source's domain isn't already covered by `network.allowed` in content-watch.md, add it there (see the comment next to that field).
+#   3. Recompile so the lock file matches the new network allowlist: gh aw compile content-watch --strict
+#   No code change is needed for the source list itself — only the workflow frontmatter needs a recompile, and only when a genuinely new domain is involved.
+#
+# HOW TO DEACTIVATE A SOURCE
+#   Set `active: false`. Keep the entry — don't delete it — so there's a record of what used to be watched and why it stopped. Use `notes` to say why (site died, too noisy, replaced by another source, etc). No recompile needed to deactivate.
+#
+# FIELDS
+#   id     - stable, unique, kebab-case. Used as the dedup-cache filename; don't reuse an id for a different source, and don't rename it once it has run at least once (renaming resets its "seen" history and everything currently in the feed will be reported as new).
+#   name   - display name used in the digest.
+#   url    - the feed or page URL to check.
+#   type   - "rss" : an RSS/Atom feed URL. Preferred — stable, structured, cheap to diff. "page" : a plain web page with no feed. Best-effort scrape of the rendered page; less reliable. Use only when the source has no feed.
+#   active - true to include it in the daily run, false to skip it.
+#   notes  - free text: why it's paused, quirks, anything worth remembering later.
+
+sources:
+  - id: simon-willison
+    name: Simon Willison's Weblog
+    url: https://simonwillison.net/atom/everything/
+    type: rss
+    active: true
+    notes: ""
+
+  - id: lesswrong
+    name: LessWrong
+    url: https://www.lesswrong.com/feed.xml
+    type: rss
+    active: true
+    notes: ""
+
+  - id: example-page
+    name: "EXAMPLE — replace before activating"
+    url: https://example.com/updates
+    type: page
+    active: false
+    notes: "Placeholder showing the \"page\" shape. type: page has no feed to diff against, so it's the least reliable option and depends on the page having a recognizable list of dated items — prefer an RSS/Atom feed when the source offers one."
