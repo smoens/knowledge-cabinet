@@ -1,6 +1,6 @@
 ---
 name: Content watch
-description: Checks the sources in .github/content-sources.yml daily and reports new items in a single digest issue, grouped by growth area with a short human-readable take on each item's potential value. Add or deactivate sources by editing that file — see its header comment.
+description: Checks the sources in .github/content-sources.yml daily and reports new items in a single digest issue — headlined by one article, grouped into open-by-default per-area tables with a description, foundational concept, and potential fit per item, closing with a glossary of the foundational concepts touched. Add or deactivate sources by editing that file — see its header comment.
 emoji: 📰
 strict: true
 on:
@@ -67,17 +67,34 @@ For each active source:
 For every new item found across all sources (for `github-commits` sources, this means every commit judged **fundamental** in step 6 — trivial commits are seen-but-unreported and never reach this stage), classify it before writing the issue:
 
 - Assign it the `id` of the single `areas[]` entry (from `content.js`) its title and excerpt most plausibly belong to. If nothing fits reasonably well, assign `uncategorized` instead of forcing it into an area.
-- Write one grounded, one-sentence take: what the item is actually about. For `rss`/`page` items, base this only on the title and the excerpt/summary you fetched. For `github-commits` items, base this on the actual `+`/`-` lines of the diff you fetched — say what changed in the documentation's meaning (a limit, a step, a capability, a constraint), not just "this page was updated". Never invent detail beyond what you fetched. Then a short second clause on where it might fit: e.g. "deepens the existing **<chapter title>** chapter", "could bridge to `[[concept-id]]`", or "a new theme — no chapter covers this yet". Only name chapters or concepts you actually read from `content.js`; never propose a chapter title or concept id that doesn't already exist.
-- Phrase this take as your own assessment (potential value, possible fit), not as a fact the source stated — don't fabricate statistics, quotes, or numbers that aren't in the fetched text or diff.
+- Write a grounded description, one to two sentences: what the item is actually about. For `rss`/`page` items, base this only on the title and the excerpt/summary you fetched. For `github-commits` items, base this on the actual `+`/`-` lines of the diff you fetched — say what changed in the documentation's meaning (a limit, a step, a capability, a constraint), not just "this page was updated". Never invent detail beyond what you fetched.
+- Also read `content.js`'s `concepts[]` (fields `id`, `term`, `kind`, `short`). Pick, at most, one concept the item most directly connects to. Prefer a `kind: "pattern"` concept (a transferable law) over a `kind: "concept"` one when both plausibly apply — patterns are what make this digest useful across domains. If nothing in `concepts[]` genuinely connects, leave this blank rather than forcing a match.
+- Write a short potential-fit clause: e.g. "deepens the existing **<chapter title>** chapter", "could bridge to `[[concept-id]]`", or "a new theme — no chapter covers this yet". Only name chapters or concepts you actually read from `content.js`; never propose a chapter title or concept id that doesn't already exist. For an item assigned `uncategorized`, instead of forcing a fit, propose a short, plainly-worded new theme name that would describe it (e.g. "possible new lens: **design history**") — your own suggestion, clearly not an existing area.
+- Phrase all of this as your own assessment (potential value, possible fit), not as a fact the source stated — don't fabricate statistics, quotes, or numbers that aren't in the fetched text or diff.
+
+Once every new item is classified, pick one **headline item** for the issue title: prefer the first new item (in area order as they appear in `content.js`, `uncategorized` last) that connects to a `kind: "pattern"` concept; if none do, use the very first new item found overall.
 
 After processing all active sources:
 
 - If zero new items were found across every source, call `noop` with a one-line message stating how many sources were checked, e.g. "Checked 2 active sources, no new content since last run."
-- Otherwise create exactly one issue, structured as:
-  - `### Summary` — total new items, how many sources they came from, and a one-line count breakdown per growth area, e.g. "Thinking 3 · Technical growth 2 · Uncategorized 1".
-  - One `####` subsection per growth area that has new items, using that area's `name` from `content.js` as the heading (e.g. `#### Thinking`), in the fixed order the areas appear in `content.js`. If any items were `uncategorized`, add a final `#### Uncategorized` subsection for them.
-  - Within each subsection, one item per bullet: `- **[Title](link)** — <source name>, <published date if known>`, followed by an indented line with that item's one-sentence take (what it's about + potential fit). For `github-commits` items, the commit link is the title's link (it shows the exact diff); if the raw commit message is uninformative (e.g. just a filename), replace `Title` with a short human-readable label for what changed, derived from the diff itself — never reuse an uninformative commit message verbatim.
-  - A final `### Sources with issues` section, only if non-empty, naming each source id that failed to fetch and why.
-  - Do not invent a publish date, fact, or excerpt beyond what the source or diff provided.
+- Otherwise create exactly one issue:
+  - **Title:** `<emoji> <headline item's title>` followed by ` (+<N-1> more today)` when more than one new item was found, where `N` is the total new item count (omit the `(+… more)` clause entirely when `N` is 1). Use 🧩 for the emoji if the headline item connects to a `kind: "pattern"` concept, otherwise 📰. Do not add the `[content-watch]` prefix yourself — that's applied automatically. Keep the headline title verbatim; if it's very long, you may trim it to roughly 80 characters with a trailing `…`, but never alter its meaning.
+  - **Body**, in this order:
+    - `### Summary` — total new items, how many sources they came from, and a one-line count breakdown per growth area, e.g. "Thinking 3 · Technical growth 2 · Uncategorized 1".
+    - One collapsible section per growth area that has new items, **open by default** (`<details open>`), in the fixed order the areas appear in `content.js`, plus a final `Uncategorized` section if any items landed there. Use this shape:
+      ```
+      <details open>
+      <summary><b>{emoji} {Area name} ({count})</b></summary>
+
+      | Item | What it's about | Foundational concept | Potential fit |
+      |---|---|---|---|
+      | [Title](link) | <one/two-sentence description> | <term, or — if none> | <fit clause> |
+
+      </details>
+      ```
+      Use this fixed emoji per area id: `tech` 🛠️, `comm` 🗣️, `learn` 📚, `mem` 🧠, `think` 💭, `uncategorized` ❓. In the `Item` column, for `github-commits` entries whose commit message is uninformative (e.g. just a filename), replace it with a short human-readable label for what changed, derived from the diff — never reuse an uninformative commit message verbatim. Keep table cells to a single line each (no embedded line breaks).
+    - A closing `### 🧩 Foundational concepts in today's digest` section — only if at least one item was linked to a `kind: "pattern"` concept — listing each distinct one once, in the order first encountered, as `- **<term>** — <its `short` field from content.js, verbatim>`. This is the reader's one-glance refresher on the transferable laws touched today; do not paraphrase the `short` text and do not include plain (`kind: "concept"`) entries here.
+    - A final `### Sources with issues` section, only if non-empty, naming each source id that failed to fetch and why.
+  - Do not invent a publish date, fact, excerpt, or definition beyond what the source, diff, or `content.js` provided.
 
 This workflow only reports what changed and offers a first read on where it might fit. It never edits `content.js`, `content-sources.yml`, or any other repository file, and it never decides what belongs in the book — that judgment stays with whoever reads the digest (and, for material that should become a chapter, with the `chapter-authoring` skill).
