@@ -66,6 +66,24 @@
     for (var i = 0; i < u.length; i++) h = (h * 31 + u.charCodeAt(i)) | 0;
     return 'c' + Math.abs(h).toString(36) + Date.now().toString(36).slice(-4);
   }
+  // Loose equality key for duplicate detection: ignore scheme, "www.", and
+  // a trailing slash, since https://x.com/a and http://www.x.com/a/ are the
+  // same article to a reader even though normalizeUrl() keeps them distinct.
+  function dedupeKey(u) {
+    try {
+      var p = new URL(u);
+      var host = p.hostname.replace(/^www\./i, '').toLowerCase();
+      var path = p.pathname.replace(/\/+$/, '') || '/';
+      return host + path + p.search;
+    } catch (e) { return String(u || '').toLowerCase(); }
+  }
+  function findByUrl(url) {
+    return list().then(function (items) {
+      var key = dedupeKey(url);
+      return items.filter(function (it) { return it.status !== 'promoted'; })
+        .find(function (it) { return dedupeKey(it.url) === key; }) || null;
+    });
+  }
 
   /* ── Fetch + parse via the reader proxy ──────────────────────────────── */
   function fetchParsed(url) {
@@ -99,24 +117,31 @@
   function add(rawUrl, note) {
     var url = normalizeUrl(rawUrl);
     if (!url) return Promise.reject(new Error('Paste an article URL first.'));
-    var item = {
-      id: idFor(url), url: url, host: hostOf(url), note: note || '',
-      title: hostOf(url) || url, status: 'fetching', addedAt: Date.now(), readAt: null, error: ''
-    };
-    return put(item).then(function () {
-      return fetchParsed(url).then(function (parsed) {
-        item.title = parsed.title; item.published = parsed.published;
-        item.markdown = parsed.markdown; item.excerpt = parsed.excerpt; item.words = parsed.words;
-        item.status = 'unread';
-        return writeIfPresent(item);
-      }).catch(function (err) {
-        // If we got this far because the *store* rejected (e.g. quota
-        // exceeded) rather than the fetch, item.markdown may already be a
-        // huge string — drop it so the small error record can actually be
-        // written and the row doesn't get stuck in "fetching" forever.
-        delete item.markdown;
-        item.status = 'error'; item.error = err.message || String(err);
-        return writeIfPresent(item).then(function () { throw err; });
+    return findByUrl(url).then(function (existing) {
+      if (existing) {
+        var dupErr = new Error('That article is already in the tray.');
+        dupErr.duplicate = existing;
+        throw dupErr;
+      }
+      var item = {
+        id: idFor(url), url: url, host: hostOf(url), note: note || '',
+        title: hostOf(url) || url, status: 'fetching', addedAt: Date.now(), readAt: null, error: ''
+      };
+      return put(item).then(function () {
+        return fetchParsed(url).then(function (parsed) {
+          item.title = parsed.title; item.published = parsed.published;
+          item.markdown = parsed.markdown; item.excerpt = parsed.excerpt; item.words = parsed.words;
+          item.status = 'unread';
+          return writeIfPresent(item);
+        }).catch(function (err) {
+          // If we got this far because the *store* rejected (e.g. quota
+          // exceeded) rather than the fetch, item.markdown may already be a
+          // huge string — drop it so the small error record can actually be
+          // written and the row doesn't get stuck in "fetching" forever.
+          delete item.markdown;
+          item.status = 'error'; item.error = err.message || String(err);
+          return writeIfPresent(item).then(function () { throw err; });
+        });
       });
     });
   }

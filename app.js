@@ -1214,6 +1214,12 @@
         paintClipList();
       }).catch(function (err) {
         input.disabled = false;
+        if (err.duplicate) {
+          input.value = '';
+          toast('Already in the tray \u2014 opening it.');
+          go('clipreader', err.duplicate.id);
+          return;
+        }
         toast(err.message || 'Could not fetch that article.');
         paintClipList();
       });
