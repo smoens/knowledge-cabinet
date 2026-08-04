@@ -111,6 +111,11 @@ window.CABINET_CHAPTERS["directlake"] = {
       "label": "Manage Direct Lake semantic models",
       "url": "https://learn.microsoft.com/en-us/fabric/fundamentals/direct-lake-manage",
       "note": "Framing, reframing, and the guardrail tables per SKU."
+    },
+    {
+      "label": "Tabular Editor blog",
+      "url": "https://tabulareditor.com/blog",
+      "note": "Blog posts on Tabular Editor and semantic model tooling."
     }
   ]
 };
