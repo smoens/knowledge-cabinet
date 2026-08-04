@@ -31,7 +31,7 @@ safe-outputs:
     close-older-issues: true
     expires: 14
     max: 1
-timeout-minutes: 15
+timeout-minutes: 25
 max-ai-credits: 1000
 concurrency:
   group: content-watch
