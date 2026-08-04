@@ -394,7 +394,31 @@
       if (/^(-{3,}|\*{3,}|_{3,})$/.test(t.replace(/\s+/g, '')) && /^[-*_\s]+$/.test(t)) { flushPara(); closeAllLists(); html += '<hr class="blk">'; i++; continue; }
       var h = /^(#{1,6})\s+(.*)$/.exec(t);
       if (h) { flushPara(); closeAllLists(); var tag = h[1].length === 1 ? 'h2' : 'h3'; html += '<' + tag + ' class="blk">' + mdInline(h[2]) + '</' + tag + '>'; i++; continue; }
-      if (/^>\s?/.test(t)) { flushPara(); closeAllLists(); html += '<div class="aside blk">' + mdInline(t.replace(/^>\s?/, '')) + '</div>'; i++; continue; }
+      // Blockquote: markdown allows a quote to run across several
+      // consecutive "> " lines, with a lone ">" marking a paragraph break
+      // inside it. Rendering each source line as its own
+      // <div class="aside blk"> (as this used to) turns one quote into a
+      // run of separately-margined blocks — including an empty, but still
+      // padded and margined, div for every bare ">" line — which reads as
+      // odd, oversized gaps. Gather the whole run first, split it back into
+      // paragraphs on the blank markers, and drop any paragraph left empty.
+      if (/^>\s?/.test(t)) {
+        flushPara(); closeAllLists();
+        var quoteParas = [], quoteCur = [];
+        while (i < lines.length && /^>\s?/.test(lines[i].trim())) {
+          var quoteLine = lines[i].trim().replace(/^>\s?/, '');
+          if (quoteLine) quoteCur.push(quoteLine);
+          else if (quoteCur.length) { quoteParas.push(quoteCur.join(' ')); quoteCur = []; }
+          i++;
+        }
+        if (quoteCur.length) quoteParas.push(quoteCur.join(' '));
+        if (quoteParas.length) {
+          html += '<div class="aside blk">' +
+            quoteParas.map(function (p) { return '<p>' + mdInline(p) + '</p>'; }).join('') +
+            '</div>';
+        }
+        continue;
+      }
       var uli = /^[-*]\s+(.*)$/.exec(t);
       var oli = /^(\d+)\.\s+(.*)$/.exec(t);
       if (uli || oli) {

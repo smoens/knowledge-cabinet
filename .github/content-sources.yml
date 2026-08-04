@@ -90,6 +90,13 @@ sources:
     active: true
     notes: "Direct match for the book's pattern-kind concepts (e.g. impedance-mismatch)."
 
+  - id: azure-docs
+    name: Azure docs (all services)
+    url: https://github.com/MicrosoftDocs/azure-docs/commits/main.atom
+    type: github-commits
+    active: true
+    notes: "Unscoped — whole repo, capped to the 20 most recent commits per run like every other source. Broad Azure/technology signal rather than a chapter-specific bridge; revisit if it's too noisy or too thin once the digest has run a few times."
+
   - id: example-page
     name: "EXAMPLE — replace before activating"
     url: https://example.com/updates

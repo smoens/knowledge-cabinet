@@ -534,6 +534,8 @@ button.bay:hover .bay-act { color: #f6d894; }
   border-left: 1px solid var(--brass-dim);
   font: italic 400 1rem/1.55 var(--read); color: var(--ink-2);
 }
+.reading .aside p { margin: 0 0 1rem; }
+.reading .aside p:last-child { margin-bottom: 0; }
 .reading hr {
   margin: 2rem 0; border: none; border-top: 1px solid var(--ivory-3);
 }
