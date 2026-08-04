@@ -67,9 +67,9 @@ For each active source:
 For every new item found across all sources (for `github-commits` sources, this means every commit judged **fundamental** in step 6 — trivial commits are seen-but-unreported and never reach this stage), classify it before writing the issue:
 
 - Assign it the `id` of the single `areas[]` entry (from `content.js`) its title and excerpt most plausibly belong to. If nothing fits reasonably well, assign `uncategorized` instead of forcing it into an area.
-- Write a grounded description, one to two sentences: what the item is actually about. For `rss`/`page` items, base this only on the title and the excerpt/summary you fetched. For `github-commits` items, base this on the actual `+`/`-` lines of the diff you fetched — say what changed in the documentation's meaning (a limit, a step, a capability, a constraint), not just "this page was updated". Never invent detail beyond what you fetched.
+- Write a grounded description as a single concise clause, roughly 12–20 words, one sentence — this feeds directly into the digest's `Take` column, so trim ruthlessly. For `rss`/`page` items, base this only on the title and the excerpt/summary you fetched. For `github-commits` items, base this on the actual `+`/`-` lines of the diff you fetched — say what changed in the documentation's meaning (a limit, a step, a capability, a constraint), not just "this page was updated". Never invent detail beyond what you fetched.
 - Also read `content.js`'s `concepts[]` (fields `id`, `term`, `kind`, `short`). Pick, at most, one concept the item most directly connects to. Prefer a `kind: "pattern"` concept (a transferable law) over a `kind: "concept"` one when both plausibly apply — patterns are what make this digest useful across domains. If nothing in `concepts[]` genuinely connects, leave this blank rather than forcing a match.
-- Write a short potential-fit clause: e.g. "deepens the existing **<chapter title>** chapter", "could bridge to `[[concept-id]]`", or "a new theme — no chapter covers this yet". Only name chapters or concepts you actually read from `content.js`; never propose a chapter title or concept id that doesn't already exist. For an item assigned `uncategorized`, instead of forcing a fit, propose a short, plainly-worded new theme name that would describe it (e.g. "possible new lens: **design history**") — your own suggestion, clearly not an existing area.
+- Write a short potential-fit clause, under about 12 words: e.g. "deepens **<chapter title>**", "bridges `[[concept-id]]`", or "new theme — no chapter yet". Only name chapters or concepts you actually read from `content.js`; never propose a chapter title or concept id that doesn't already exist. For an item assigned `uncategorized`, instead of forcing a fit, propose a short, plainly-worded new theme name that would describe it (e.g. "possible new lens: **design history**") — your own suggestion, clearly not an existing area.
 - Phrase all of this as your own assessment (potential value, possible fit), not as a fact the source stated — don't fabricate statistics, quotes, or numbers that aren't in the fetched text or diff.
 
 Once every new item is classified, pick one **headline item** for the issue title: prefer the first new item (in area order as they appear in `content.js`, `uncategorized` last) that connects to a `kind: "pattern"` concept; if none do, use the very first new item found overall.
@@ -81,18 +81,18 @@ After processing all active sources:
   - **Title:** `<emoji> <headline item's title>` followed by ` (+<N-1> more today)` when more than one new item was found, where `N` is the total new item count (omit the `(+… more)` clause entirely when `N` is 1). Use 🧩 for the emoji if the headline item connects to a `kind: "pattern"` concept, otherwise 📰. Do not add the `[content-watch]` prefix yourself — that's applied automatically. Keep the headline title verbatim; if it's very long, you may trim it to roughly 80 characters with a trailing `…`, but never alter its meaning.
   - **Body**, in this order:
     - `### Summary` — total new items, how many sources they came from, and a one-line count breakdown per growth area, e.g. "Thinking 3 · Technical growth 2 · Uncategorized 1".
-    - One collapsible section per growth area that has new items, **open by default** (`<details open>`), in the fixed order the areas appear in `content.js`, plus a final `Uncategorized` section if any items landed there. Use this shape:
+    - One collapsible section per growth area that has new items, **open by default** (`<details open>`), in the fixed order the areas appear in `content.js`, plus a final `Uncategorized` section if any items landed there. Use this shape — a 2-column table, not 4, so it stays readable on narrow viewports:
       ```
       <details open>
       <summary><b>{emoji} {Area name} ({count})</b></summary>
 
-      | Item | What it's about | Foundational concept | Potential fit |
-      |---|---|---|---|
-      | [Title](link) | <one/two-sentence description> | <term, or — if none> | <fit clause> |
+      | Item | Take |
+      |---|---|
+      | [Title](link) | <one-clause description><br>`<concept, or — if none>` · <fit clause> |
 
       </details>
       ```
-      Use this fixed emoji per area id: `tech` 🛠️, `comm` 🗣️, `learn` 📚, `mem` 🧠, `think` 💭, `uncategorized` ❓. In the `Item` column, for `github-commits` entries whose commit message is uninformative (e.g. just a filename), replace it with a short human-readable label for what changed, derived from the diff — never reuse an uninformative commit message verbatim. Keep table cells to a single line each (no embedded line breaks).
+      Use this fixed emoji per area id: `tech` 🛠️, `comm` 🗣️, `learn` 📚, `mem` 🧠, `think` 💭, `uncategorized` ❓. In the `Item` column, for `github-commits` entries whose commit message is uninformative (e.g. just a filename), replace it with a short human-readable label for what changed, derived from the diff — never reuse an uninformative commit message verbatim. The `Take` cell holds exactly two lines separated by one `<br>`: the description clause, then the concept and fit clause joined by ` · `. Never add any other line break inside a cell.
     - A closing `### 🧩 Foundational concepts in today's digest` section — only if at least one item was linked to a `kind: "pattern"` concept — listing each distinct one once, in the order first encountered, as `- **<term>** — <its `short` field from content.js, verbatim>`. This is the reader's one-glance refresher on the transferable laws touched today; do not paraphrase the `short` text and do not include plain (`kind: "concept"`) entries here.
     - A final `### Sources with issues` section, only if non-empty, naming each source id that failed to fetch and why.
   - Do not invent a publish date, fact, excerpt, or definition beyond what the source, diff, or `content.js` provided.
