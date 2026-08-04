@@ -9,18 +9,24 @@
 window.PRODUCT_MAP_SEED = {
   meta: {
     product: "Knowledge Cabinet",
-    schema: "v2 - vision + product lens + build lens + inbox + glossary",
+    schema: "v3 - goal-labeled areas + area activity status + build lens + inbox + glossary",
     generatedFrom: "repository files, read directly - no invented figures",
-    note: "status:'built' items are grounded in existing code/config. status:'backlog'/'undefined'/'informal' items are honestly flagged gaps, not invented content."
+    note: "featureGroups[].status ('stable'/'active'/'blocked'/'backlog') is the area's own activity, grounded in git history, not the same as a feature being shipped. featureGroups[].goal_ids labels which vision goals an area serves - not exhaustive, and a goal with no area is flagged honestly rather than force-mapped. devComponents status:'built' items are grounded in existing code/config; 'backlog'/'undefined'/'informal' are honestly flagged gaps, not invented content."
   },
   vision: {
     tagline: "A personal book that never finishes.",
+    /* Each goal carries a stable id and a short label so a product area
+       (featureGroups[].goal_ids below) can point back at it explicitly.
+       Not every goal needs an area yet, and one area can serve several
+       goals - the mapping is a many-to-many label, not a partition. An
+       unmapped goal renders honestly as "no area mapped yet" rather than
+       forcing a fit. */
     goals: [
-      "Bring fun into reading.",
-      "Make reading trackable, leaning into gamification.",
-      "Focus reading on understanding and learning from first principles and fundamental concepts, not just facts.",
-      "Build knowledge and have fun with it along the way.",
-      "Build growth across different areas and domains, and make that growth visible and tangible."
+      { id: "fun", label: "Fun", text: "Bring fun into reading." },
+      { id: "trackable", label: "Trackable / gamified", text: "Make reading trackable, leaning into gamification." },
+      { id: "fundamentals", label: "Fundamentals over facts", text: "Focus reading on understanding and learning from first principles and fundamental concepts, not just facts." },
+      { id: "knowledge-fun", label: "Knowledge + fun", text: "Build knowledge and have fun with it along the way." },
+      { id: "growth-visible", label: "Growth made visible", text: "Build growth across different areas and domains, and make that growth visible and tangible." }
     ]
   },
   components: [
@@ -34,16 +40,24 @@ window.PRODUCT_MAP_SEED = {
     { id: "design", name: "Design system", kind: "design", file_path: "cabinet.css + DESIGN.md", description: "The whole visual world: tokens, cabinet, reading table, catalogue encodings, rounds, register." },
     { id: "offline-shell", name: "Offline shell", kind: "infra", file_path: "sw.js + manifest.webmanifest", description: "Eager shell cache and on-demand content cache; PWA install contract." }
   ],
+  /* status is the area's own activity, distinct from whether its features
+     shipped: "stable" = built and not currently being worked on, "active" =
+     in development right now, "blocked" = waiting on a decision/review,
+     "backlog" = named but not started. Grounded in recent commit history
+     (see `git log`) rather than guessed - re-check this by hand when work
+     actually starts or lands, the same way you'd edit any other seed here.
+     goal_ids is likewise a first-pass editorial read of each area's own
+     description above, not exhaustive - adjust freely. */
   featureGroups: [
-    { id: "nav", name: "Reading & navigation", description: "Getting to a chapter and moving between the wall and the table.", component_ids: ["app-core"], status: "built" },
-    { id: "dial", name: "Extent dial", description: "Depth as a dial the reader turns, not a search.", component_ids: ["app-core"], status: "built" },
-    { id: "catalogue", name: "Catalogue & concepts", description: "The cross-cutting index of concepts and patterns, and drilling into any term.", component_ids: ["app-core"], status: "built" },
-    { id: "rep", name: "Spaced repetition", description: "Prompts filed from reading come back on a schedule.", component_ids: ["app-core"], status: "built" },
-    { id: "capture", name: "Capture & promotion", description: "Saving something read elsewhere, and turning it into a chapter.", component_ids: ["clippings"], status: "built" },
-    { id: "metrics", name: "Metrics (register)", description: "What the reader can see about their own reading.", component_ids: ["app-core"], status: "built" },
-    { id: "sync", name: "Sync & persistence", description: "Where reading state lives and how it follows the reader.", component_ids: ["app-core"], status: "built" },
-    { id: "explorables", name: "Explorables", description: "Small interactive models that print their own constants.", component_ids: ["figures"], status: "built" },
-    { id: "offline", name: "Offline & install", description: "Working with no signal, and installing to a home screen.", component_ids: ["offline-shell"], status: "built" }
+    { id: "nav", name: "Reading & navigation", description: "Getting to a chapter and moving between the wall and the table.", component_ids: ["app-core"], status: "stable", goal_ids: ["growth-visible"] },
+    { id: "dial", name: "Extent dial", description: "Depth as a dial the reader turns, not a search.", component_ids: ["app-core"], status: "stable", goal_ids: ["fundamentals"] },
+    { id: "catalogue", name: "Catalogue & concepts", description: "The cross-cutting index of concepts and patterns, and drilling into any term.", component_ids: ["app-core"], status: "stable", goal_ids: ["fundamentals"] },
+    { id: "rep", name: "Spaced repetition", description: "Prompts filed from reading come back on a schedule.", component_ids: ["app-core"], status: "stable", goal_ids: ["trackable", "knowledge-fun"] },
+    { id: "capture", name: "Capture & promotion", description: "Saving something read elsewhere, and turning it into a chapter.", component_ids: ["clippings"], status: "active", goal_ids: ["knowledge-fun"] },
+    { id: "metrics", name: "Metrics (register)", description: "What the reader can see about their own reading.", component_ids: ["app-core"], status: "stable", goal_ids: ["trackable", "growth-visible"] },
+    { id: "sync", name: "Sync & persistence", description: "Where reading state lives and how it follows the reader.", component_ids: ["app-core"], status: "stable", goal_ids: [] },
+    { id: "explorables", name: "Explorables", description: "Small interactive models that print their own constants.", component_ids: ["figures"], status: "stable", goal_ids: ["fun", "fundamentals"] },
+    { id: "offline", name: "Offline & install", description: "Working with no signal, and installing to a home screen.", component_ids: ["offline-shell"], status: "stable", goal_ids: [] }
   ],
   features: [
     { id: "wall", group_id: "nav", component_id: "app-core", name: "The cabinet wall", description: "Browse every chapter at a glance, grouped by growth area and state.", origin: "story", status: "built" },

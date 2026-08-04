@@ -15,7 +15,7 @@
 #   id     - stable, unique, kebab-case. Used as the dedup-cache filename; don't reuse an id for a different source, and don't rename it once it has run at least once (renaming resets its "seen" history and everything currently in the feed will be reported as new).
 #   name   - display name used in the digest.
 #   url    - the feed or page URL to check.
-#   type   - "rss" : an RSS/Atom feed URL. Preferred — stable, structured, cheap to diff. "page" : a plain web page with no feed. Best-effort scrape of the rendered page; less reliable. Use only when the source has no feed.
+#   type   - "rss" : an RSS/Atom feed URL. Preferred — stable, structured, cheap to diff. "page" : a plain web page with no feed. Best-effort scrape of the rendered page; less reliable. Use only when the source has no feed. "github-commits" : a GitHub commits Atom feed scoped to one path in a docs repo (https://github.com/<owner>/<repo>/commits/<branch>/<path>.atom). The workflow fetches each new commit's .diff and only reports commits whose diff changes substantive prose, not typo/metadata/freshness-bot commits — see content-watch.md.
 #   active - true to include it in the daily run, false to skip it.
 #   notes  - free text: why it's paused, quirks, anything worth remembering later.
 
@@ -33,6 +33,62 @@ sources:
     type: rss
     active: true
     notes: ""
+
+  - id: martin-fowler
+    name: Martin Fowler
+    url: https://martinfowler.com/feed.atom
+    type: rss
+    active: true
+    notes: ""
+
+  - id: fabric-updates-blog
+    name: Microsoft Fabric Updates Blog
+    url: https://community.fabric.microsoft.com/oxcrx34285/rss/board?board.id=fbc_fabricupdatesblogs
+    type: rss
+    active: true
+    notes: ""
+
+  - id: powerbi-updates-blog
+    name: Power BI Updates Blog
+    url: https://community.fabric.microsoft.com/oxcrx34285/rss/board?board.id=fbc_pbiupdatesblog
+    type: rss
+    active: true
+    notes: ""
+
+  - id: fabric-docs-onelake
+    name: Fabric docs — OneLake
+    url: https://github.com/MicrosoftDocs/fabric-docs/commits/main/docs/onelake.atom
+    type: github-commits
+    active: true
+    notes: "Scoped to docs/onelake — ties to the shortcut/OneLake chapters."
+
+  - id: fabric-docs-data-warehouse
+    name: Fabric docs — Data Warehouse
+    url: https://github.com/MicrosoftDocs/fabric-docs/commits/main/docs/data-warehouse.atom
+    type: github-commits
+    active: true
+    notes: "Scoped to docs/data-warehouse — ties to the V-Order / Direct Lake chapters."
+
+  - id: fabric-docs-enterprise
+    name: Fabric docs — Enterprise (capacity & admin)
+    url: https://github.com/MicrosoftDocs/fabric-docs/commits/main/docs/enterprise.atom
+    type: github-commits
+    active: true
+    notes: "Scoped to docs/enterprise — ties to the capacity-unit chapter."
+
+  - id: powerbi-docs-guidance
+    name: Power BI docs — Guidance
+    url: https://github.com/MicrosoftDocs/powerbi-docs/commits/main/powerbi-docs/guidance.atom
+    type: github-commits
+    active: true
+    notes: ""
+
+  - id: architecture-center-patterns
+    name: Azure Architecture Center — Patterns
+    url: https://github.com/MicrosoftDocs/architecture-center/commits/main/docs/patterns.atom
+    type: github-commits
+    active: true
+    notes: "Direct match for the book's pattern-kind concepts (e.g. impedance-mismatch)."
 
   - id: example-page
     name: "EXAMPLE — replace before activating"

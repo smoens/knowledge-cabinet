@@ -623,6 +623,56 @@
     go('table', pick.id);
   }
 
+  /* Random curated source: sources live inside each chapter's lazy chunk, so this
+     shuffles the chapter list and loads chunks one at a time until it finds a
+     source with a URL — rather than pretending we already know every source. */
+  function shuffledChapterIds() {
+    var ids = BOOK.chapters.map(function (c) { return c.id; });
+    for (var i = ids.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = ids[i]; ids[i] = ids[j]; ids[j] = tmp;
+    }
+    return ids;
+  }
+
+  function openRandomSource() {
+    var order = shuffledChapterIds();
+    var i = 0;
+    (function tryNext() {
+      if (i >= order.length) {
+        toast('No linked sources yet — the drawers so far cite books and papers without a URL.');
+        return;
+      }
+      var ch = CH[order[i++]];
+      ensureChapter(ch).then(function () {
+        var linked = (ch.sources || []).filter(function (s) { return s.url; });
+        if (!linked.length) return tryNext();
+        var s = linked[Math.floor(Math.random() * linked.length)];
+        logEvent('source', s.label, 'from ' + ch.title);
+        save();
+        toast('Pulled a source at random: ' + s.label);
+        openSourceInReader(s, ch);
+      }).catch(tryNext);
+    })();
+  }
+
+  /* Reads the pulled source through the same clippings tray used for pasted
+     articles: fetched via the reader proxy, parsed to markdown, and rendered
+     at reading width in our own theme (clipreader) rather than bounced out
+     to the raw page. Falls back to a plain new tab if that module or fetch
+     is unavailable, so the feature still works offline or if the free
+     reader proxy is down or rate-limited. */
+  function openSourceInReader(s, ch) {
+    if (!window.Clip) { window.open(s.url, '_blank', 'noopener'); return; }
+    window.Clip.add(s.url, 'Pulled at random from \u201c' + ch.title + '\u201d').then(function (item) {
+      go('clipreader', item.id);
+    }).catch(function (err) {
+      if (err.duplicate) { go('clipreader', err.duplicate.id); return; }
+      toast((err.message || 'Could not fetch that article') + ' \u2014 opening it directly instead.');
+      window.open(s.url, '_blank', 'noopener');
+    });
+  }
+
   /* ── View: the reading table ────────────────────────────────────────── */
   var io = null;
 
@@ -1605,6 +1655,7 @@
   /* ── Rail ───────────────────────────────────────────────────────────── */
   $$('.plate').forEach(function (p) { p.addEventListener('click', function () { go(p.dataset.view); }); });
   $('#randomBtn').addEventListener('click', openRandom);
+  $('#randomSourceBtn').addEventListener('click', openRandomSource);
   var lampBtn = $('#lampBtn');
   function applyLamp() {
     document.documentElement.style.setProperty('--lamp', S.lamp ? '1' : '0');
@@ -1624,6 +1675,7 @@
   document.addEventListener('keydown', function (e) {
     if (e.target.matches('input, textarea')) return;
     if (e.key === 'r' && !e.metaKey && !e.ctrlKey) openRandom();
+    if (e.key === 's' && !e.metaKey && !e.ctrlKey) openRandomSource();
     if (e.key >= '1' && e.key <= '4' && current === 'table') {
       var d = $('.detent[data-d="' + e.key + '"]'); if (d) d.click();
     }

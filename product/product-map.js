@@ -69,16 +69,39 @@
 
   // ---- render: header / vision ----
 
+  function groupsForGoal(goalId) {
+    return allGroups().filter(function (g) {
+      return (g.goal_ids || []).indexOf(goalId) !== -1;
+    });
+  }
+
   function renderVision() {
     document.getElementById("pm-tagline").textContent = seed.vision.tagline;
     var el = document.getElementById("pm-vision");
     el.innerHTML =
-      "<h2>Vision</h2><ul>" +
-      seed.vision.goals.map(function (g) { return "<li>" + esc(g) + "</li>"; }).join("") +
+      "<h2>Vision</h2><ul class=\"pm-goal-list\">" +
+      seed.vision.goals.map(function (g) {
+        var servedBy = groupsForGoal(g.id).map(function (grp) { return grp.name; });
+        return (
+          "<li><span class=\"pm-goal-text\">" + esc(g.text) + "</span>" +
+          (servedBy.length
+            ? '<span class="pm-goal-areas">served by: ' + esc(servedBy.join(", ")) + "</span>"
+            : '<span class="pm-goal-areas pm-empty">no area mapped yet</span>') +
+          "</li>"
+        );
+      }).join("") +
       "</ul>";
   }
 
   // ---- render: product tab ----
+
+  var STATUS_LABEL = { stable: "stable", active: "in development", blocked: "blocked", backlog: "backlog" };
+
+  function goalChip(goalId) {
+    var g = seed.vision.goals.filter(function (x) { return x.id === goalId; })[0];
+    if (!g) return "";
+    return '<span class="pm-goal-chip" title="' + esc(g.text) + '">' + esc(g.label) + "</span>";
+  }
 
   function groupCard(group) {
     var feats = featuresFor(group.id);
@@ -88,17 +111,27 @@
       if (t && touches.indexOf(t) === -1) touches.push(t);
     });
     var featItems = feats.map(function (f) {
+      var extraStatus = f.status && f.status !== "built"
+        ? '<span class="pm-status-pill ' + esc(f.status) + '">' + esc(STATUS_LABEL[f.status] || f.status) + "</span>"
+        : "";
       return (
         '<li><span class="pm-origin-dot ' + esc(f.origin) + '" title="' +
         (f.origin === "story" ? "from a user story" : "bumped into") + '"></span>' +
-        "<span><span class=\"pm-feature-name\">" + esc(f.name) + "</span> &mdash; " +
+        "<span><span class=\"pm-feature-name\">" + esc(f.name) + "</span> " + extraStatus + " &mdash; " +
         '<span class="pm-feature-desc">' + esc(f.description) + "</span></span></li>"
       );
     }).join("");
+    var status = group.status || "stable";
+    var goalIds = group.goal_ids || [];
+    var goalsHtml = goalIds.length
+      ? '<div class="pm-goal-chips">' + goalIds.map(goalChip).join("") + "</div>"
+      : '<p class="pm-goal-chips pm-empty">no goal mapped yet</p>';
     return (
-      '<div class="pm-card">' +
+      '<div class="pm-card pm-card-status-' + esc(status) + '">' +
+      '<span class="pm-status-pill ' + esc(status) + '">' + esc(STATUS_LABEL[status] || status) + "</span>" +
       "<h3>" + esc(group.name) + "</h3>" +
       '<p class="pm-desc">' + esc(group.description) + "</p>" +
+      goalsHtml +
       (touches.length ? '<p class="pm-touches">touches: ' + esc(touches.join(", ")) + "</p>" : "") +
       '<ul class="pm-feature-list">' + (featItems || '<li class="pm-empty">No features yet.</li>') + "</ul>" +
       "</div>"

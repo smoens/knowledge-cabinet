@@ -101,6 +101,11 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <path d="M12 3v12M8 7l4-4 4 4"/>
       <path d="M5 13v5.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V13"/>
     </symbol>
+    <symbol id="i-clipping" viewBox="0 0 24 24">
+      <path d="M6 3.5h9l3 3V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20Z"/>
+      <path d="M15 3.5V6.5h3"/>
+      <path d="M9 11h6M9 14h6M9 17h3.5"/>
+    </symbol>
   </defs>
 </svg>
 
@@ -122,6 +127,9 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <div class="rail-tools">
       <button class="tool" id="randomBtn" title="Open a drawer at random">
         <svg class="ic"><use href="#i-die"></use></svg><span>Random</span>
+      </button>
+      <button class="tool" id="randomSourceBtn" title="Pull a curated source at random and read it here, at reading width">
+        <svg class="ic"><use href="#i-clipping"></use></svg><span>Random source</span>
       </button>
       <button class="tool" id="lampBtn" title="Raise the lamp: brightens the room and lifts cabinet text for longer sessions" aria-pressed="false">
         <svg class="ic"><use href="#i-lamp"></use></svg><span id="lampLabel">Lamp up</span>
