@@ -156,12 +156,22 @@
   }
 
   /* ── Tiny markdown → HTML, just enough for reader-proxy output ───────── */
+  // URLs (esp. Wikipedia's) often contain one nested "(paren)" pair, e.g.
+  // .../wiki/Reading_(process) — a plain [^)]+ capture truncates at that
+  // inner ")", so allow one level of balanced parens in the destination.
+  var DEST = '\\(((?:[^()]|\\([^()]*\\))*)\\)';
+  function link(text, dest) {
+    // Markdown allows an optional "title" after the URL: [x](url "title").
+    var m = /^(\S+)(?:\s+"([^"]*)")?$/.exec(String(dest).trim());
+    var href = (m ? m[1] : dest).replace(/"/g, '%22');
+    var title = m && m[2] ? ' title="' + m[2].replace(/"/g, '&quot;') + '"' : '';
+    return '<a href="' + href + '"' + title + ' target="_blank" rel="noopener">' + text + '</a>';
+  }
   function mdInline(s) {
     s = String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    s = s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, ''); // drop images, keep prose flowing
-    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function (all, text, href) {
-      return '<a href="' + href.replace(/"/g, '%22') + '" target="_blank" rel="noopener">' + text + '</a>';
-    });
+    s = s.replace(new RegExp('!\\[([^\\]]*)\\]' + DEST, 'g'), ''); // drop images, keep prose flowing
+    s = s.replace(new RegExp('\\[\\[([^\\]]+)\\]\\]' + DEST, 'g'), function (all, text, dest) { return link('[' + text + ']', dest); }); // wiki-style [[1]](url) footnotes
+    s = s.replace(new RegExp('\\[([^\\]]+)\\]' + DEST, 'g'), function (all, text, dest) { return link(text, dest); });
     s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
     s = s.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<i>$2</i>');
     s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
