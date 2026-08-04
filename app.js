@@ -424,6 +424,38 @@
     go(VIEWS[h] ? h : 'case', null, silent);
   }
 
+  /* ── Incoming share: a URL arriving via ?url= (a share_target navigation,
+     an iOS Shortcut, or a desktop bookmarklet) is filed into the clippings
+     tray without the reader ever opening the add-clip form. Only reroutes
+     when a share param is actually present, so a stray query string (utm
+     tags, etc.) never hijacks normal hash routing. */
+  function handleIncomingShare() {
+    if (!location.search) return false;
+    var params = new URLSearchParams(location.search);
+    if (!params.has('url') && !params.has('text') && !params.has('title')) return false;
+    /* The url param is trusted as-is; text/title are free-form share text,
+       so a URL is extracted and any trailing punctuation it picked up
+       (sentence-ending periods, closing brackets/quotes) is trimmed. */
+    var url = (params.get('url') || '').trim();
+    if (!url) {
+      var candidate = params.get('text') || params.get('title') || '';
+      var m = String(candidate).match(/https?:\/\/[^\s<>"')\]]+/);
+      url = m ? m[0].replace(/[.,;:!?]+$/, '') : '';
+    }
+    history.replaceState(null, '', location.pathname + '#clippings');
+    if (!url) return true;
+    if (!window.Clip) { toast('Could not load the clippings module.'); return true; }
+    toast('Filing shared link\u2026');
+    window.Clip.add(url).then(function () {
+      toast('Filed. Parsed and ready to read.');
+      if (current === 'clippings') paintClipList();
+    }).catch(function (err) {
+      toast(err && err.duplicate ? 'Already in the tray: ' + (err.duplicate.title || err.duplicate.url) : (err && err.message) || 'Could not fetch that article.');
+      if (current === 'clippings') paintClipList();
+    });
+    return true;
+  }
+
   /* ── View: the cabinet ──────────────────────────────────────────────── */
   function stateLabel(st) {
     return { 'new': 'new', evolving: 'revised', retiring: 'retiring', live: 'in place' }[st] || st;
@@ -613,7 +645,10 @@
     var r = S.read[chId];
     v.innerHTML =
       '<div class="table-wrap">' +
-        '<button class="table-back">' + icon('i-back') + 'Back to the cabinet</button>' +
+        '<div class="table-toolbar">' +
+          '<button class="table-back">' + icon('i-back') + 'Back to the cabinet</button>' +
+          '<button class="table-share" type="button">' + icon('i-share') + 'Share</button>' +
+        '</div>' +
         '<div class="table">' +
           '<aside class="labelcard">' + labelHTML(ch, r) + '</aside>' +
           '<article class="reading" id="reading"></article>' +
@@ -621,8 +656,30 @@
       '</div>';
 
     $('.table-back', v).addEventListener('click', function () { go('case'); });
+    $('.table-share', v).addEventListener('click', function () { shareChapter(ch); });
     wireExtent(ch);
     paint(ch);
+  }
+
+  function shareChapter(ch) {
+    var url = location.origin + location.pathname + '#read/' + ch.id;
+    var payload = { title: ch.title, text: ch.summary, url: url };
+    if (navigator.share) {
+      navigator.share(payload).catch(function (err) {
+        if (err && err.name === 'AbortError') return;
+        copyLink(url);
+      });
+      return;
+    }
+    copyLink(url);
+  }
+
+  function copyLink(url) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { toast('Link copied.'); }, function () { toast(url); });
+    } else {
+      toast(url);
+    }
   }
 
   function labelHTML(ch, r) {
@@ -1325,6 +1382,7 @@
           '</div>' +
         '</div>';
       $('.table-back', v).addEventListener('click', function () { go('clippings'); });
+      if (window.Clip.renderMermaid) window.Clip.renderMermaid(v);
     }).catch(function (err) {
       if (current !== 'clipreader') return;
       v.innerHTML = '<div class="table-wrap"><div class="empty"><h3>Could not open that clipping</h3><p>' + esc(err.message || '') + '</p></div></div>';
@@ -1556,6 +1614,7 @@
 
   applyLamp();
   wireSlip();
+  handleIncomingShare();
   fromHash(true);
   pullRemote();
 })();

@@ -3,7 +3,7 @@
    resources join a runtime cache only when a reader uses them. Bump SHELL for
    each shell release. CONTENT stays stable so read drawers survive updates;
    bump it only when the runtime chunk schema changes incompatibly. */
-var SHELL = 'cabinet-shell-v11';
+var SHELL = 'cabinet-shell-v12';
 var CONTENT = 'cabinet-content-v1';
 
 var FILES = [
@@ -52,12 +52,17 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  var cacheName = SHELL_URLS.indexOf(req.url) >= 0 ? SHELL : CONTENT;
+  /* Navigations always resolve to the shell document, even when they carry
+     a share_target/bookmarklet query string (?url=...). Cache and match by
+     path only in that case — keying on the full request would mint a new,
+     permanent cache entry for every distinct link ever shared in. */
+  var cacheKey = req.mode === 'navigate' ? url.origin + url.pathname : req.url;
+  var cacheName = SHELL_URLS.indexOf(cacheKey) >= 0 ? SHELL : CONTENT;
   e.respondWith(caches.open(cacheName).then(function (cache) {
-    return cache.match(req).then(function (hit) {
+    return cache.match(cacheKey).then(function (hit) {
       var update = fetch(req).then(function (fresh) {
         if (!fresh || !fresh.ok || fresh.type !== 'basic') return fresh;
-        return cache.put(req, fresh.clone()).then(function () { return fresh; });
+        return cache.put(cacheKey, fresh.clone()).then(function () { return fresh; });
       });
       if (hit) {
         /* Refresh in the background so the next open is current. */

@@ -210,38 +210,188 @@
     var title = m && m[2] ? ' title="' + m[2].replace(/"/g, '&quot;') + '"' : '';
     return '<a href="' + href + '"' + title + ' target="_blank" rel="noopener">' + text + '</a>';
   }
+  function escHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
   function mdInline(s) {
-    s = String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    s = escHtml(s);
+    // Pull inline code out first (as opaque placeholders) so link/emphasis
+    // rules below never see inside a `code span` — otherwise `a[i] *n*`
+    // would come out of the code span with a stray <i> baked into it.
+    var codeSpans = [];
+    s = s.replace(/`([^`]+)`/g, function (all, code) {
+      codeSpans.push(code);
+      return '\u0000' + (codeSpans.length - 1) + '\u0000';
+    });
     s = s.replace(new RegExp('!\\[([^\\]]*)\\]' + DEST, 'g'), ''); // drop images, keep prose flowing
     s = s.replace(new RegExp('\\[\\[([^\\]]+)\\]\\]' + DEST, 'g'), function (all, text, dest) { return link('[' + text + ']', dest); }); // wiki-style [[1]](url) footnotes
     s = s.replace(new RegExp('\\[([^\\]]+)\\]' + DEST, 'g'), function (all, text, dest) { return link(text, dest); });
+    s = s.replace(/~~([^~]+)~~/g, '<s>$1</s>');
     s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+    s = s.replace(/__([^_]+)__/g, '<b>$1</b>');
     s = s.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<i>$2</i>');
-    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+    // Underscore italics, CommonMark-style: only at a word boundary, so
+    // "snake_case_name" is left alone but "_word_" still italicizes.
+    s = s.replace(/(^|[^\w_])_([^\s_][^_]*?)_(?![\w_])/g, '$1<i>$2</i>');
+    s = s.replace(/\u0000(\d+)\u0000/g, function (all, idx) { return '<code>' + codeSpans[+idx] + '</code>'; });
     return s;
   }
+  // A GFM table row: "| a | b |" or "a | b" (leading/trailing pipes optional).
+  // Cells can't themselves contain "|" here since the reader proxy never
+  // escapes them — good enough for the tables articles actually ship.
+  function splitTableRow(line) {
+    var t = line.trim().replace(/^\|/, '').replace(/\|\s*$/, '');
+    return t.split('|').map(function (c) { return c.trim(); });
+  }
+  var TABLE_SEP = /^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?$/;
+  // The Jina reader proxy scrapes the *rendered* page, not the article's raw
+  // markdown source. When a host (e.g. GitHub) renders a ```mermaid fence
+  // client-side into an SVG before Jina sees it, the fence markers are gone
+  // by the time we get the text — only the bare diagram source remains,
+  // unindented header and all, butted straight up against the next prose
+  // line with no blank line between them. Recognize the handful of mermaid
+  // diagram-type declarations (as a whole line, not a word inside a
+  // sentence) so that content still becomes a real diagram instead of
+  // getting run into the following paragraph.
+  var MERMAID_HEAD = /^(?:(?:flowchart|graph)\s+(?:TB|TD|BT|RL|LR)|sequenceDiagram|classDiagram(?:-v2)?|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie(?:\s+showData)?(?:\s+title\s+.+)?|gitGraph(?:\s*:.*)?|mindmap|timeline|quadrantChart|sankey-beta|block-beta|requirementDiagram|C4(?:Context|Container|Component|Dynamic|Deployment)|xychart-beta)$/;
+  var MERMAID_BODY_HINT = /(-->|->>|-\.->|==>|--[ox]>?|:::|^end$|^subgraph\b|^participant\b|^class\b|^state\b|^note\b)/i;
   function toHtml(markdown) {
     var lines = String(markdown || '').replace(/\r\n/g, '\n').split('\n');
     var html = '', para = [], inList = false;
     function flushPara() { if (para.length) { html += '<p class="blk">' + mdInline(para.join(' ')) + '</p>'; para = []; } }
     function closeList() { if (inList) { html += '</ul>'; inList = false; } }
-    lines.forEach(function (line) {
-      var t = line.trim();
-      if (!t) { flushPara(); closeList(); return; }
-      var h = /^(#{1,3})\s+(.*)$/.exec(t);
-      if (h) { flushPara(); closeList(); var tag = h[1].length === 1 ? 'h2' : 'h3'; html += '<' + tag + ' class="blk">' + mdInline(h[2]) + '</' + tag + '>'; return; }
-      if (/^>\s?/.test(t)) { flushPara(); closeList(); html += '<div class="aside blk">' + mdInline(t.replace(/^>\s?/, '')) + '</div>'; return; }
+    var i = 0;
+    while (i < lines.length) {
+      var t = lines[i].trim();
+
+      // Fenced code block: ```lang ... ``` — kept verbatim, never run through
+      // mdInline, so pipes/asterisks/backticks inside code print as typed.
+      // A ```mermaid fence renders as a live diagram (see renderMermaid()).
+      var fence = /^```\s*([\w-]*)\s*$/.exec(t);
+      if (fence) {
+        flushPara(); closeList();
+        var lang = fence[1].toLowerCase();
+        var code = [];
+        i++;
+        while (i < lines.length && lines[i].trim() !== '```') { code.push(lines[i]); i++; }
+        i++; // skip the closing fence (or run off the end if it was never closed)
+        var raw = code.join('\n');
+        html += lang === 'mermaid'
+          ? '<pre class="mermaid blk">' + escHtml(raw) + '</pre>'
+          : '<pre class="blk"><code>' + escHtml(raw) + '</code></pre>';
+        continue;
+      }
+
+      // Fence-less mermaid: a line that's a whole-line diagram-type
+      // declaration (see MERMAID_HEAD above), with its own line already
+      // unindented same as here. Swallow indented / arrow-syntax lines that
+      // follow as the diagram body, stopping at the first line that looks
+      // like ordinary unindented prose.
+      if (MERMAID_HEAD.test(t)) {
+        flushPara(); closeList();
+        var diagram = [t];
+        i++;
+        while (i < lines.length) {
+          var rawLine = lines[i];
+          var bodyT = rawLine.trim();
+          if (!bodyT) break;
+          if (!/^\s/.test(rawLine) && !MERMAID_BODY_HINT.test(bodyT)) break;
+          diagram.push(bodyT);
+          i++;
+        }
+        html += '<pre class="mermaid blk">' + escHtml(diagram.join('\n')) + '</pre>';
+        continue;
+      }
+
+      // GFM table: a row containing "|", followed by a "|---|---|" rule.
+      if (t.indexOf('|') >= 0 && i + 1 < lines.length && TABLE_SEP.test(lines[i + 1].trim())) {
+        flushPara(); closeList();
+        var head = splitTableRow(t);
+        i += 2;
+        var rows = [];
+        while (i < lines.length && lines[i].trim() && lines[i].indexOf('|') >= 0) { rows.push(splitTableRow(lines[i])); i++; }
+        html += '<table class="blk"><thead><tr>' +
+          head.map(function (c) { return '<th>' + mdInline(c) + '</th>'; }).join('') + '</tr></thead>';
+        if (rows.length) {
+          html += '<tbody>' + rows.map(function (r) {
+            return '<tr>' + r.map(function (c) { return '<td>' + mdInline(c) + '</td>'; }).join('') + '</tr>';
+          }).join('') + '</tbody>';
+        }
+        html += '</table>';
+        continue;
+      }
+
+      if (!t) { flushPara(); closeList(); i++; continue; }
+      // Thematic break: 3+ of the same rule character, spaces allowed
+      // between them ("---", "***", "___", "- - -"), and nothing else.
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(t.replace(/\s+/g, '')) && /^[-*_\s]+$/.test(t)) { flushPara(); closeList(); html += '<hr class="blk">'; i++; continue; }
+      var h = /^(#{1,6})\s+(.*)$/.exec(t);
+      if (h) { flushPara(); closeList(); var tag = h[1].length === 1 ? 'h2' : 'h3'; html += '<' + tag + ' class="blk">' + mdInline(h[2]) + '</' + tag + '>'; i++; continue; }
+      if (/^>\s?/.test(t)) { flushPara(); closeList(); html += '<div class="aside blk">' + mdInline(t.replace(/^>\s?/, '')) + '</div>'; i++; continue; }
       var li = /^[-*]\s+(.*)$/.exec(t) || /^\d+\.\s+(.*)$/.exec(t);
-      if (li) { flushPara(); if (!inList) { html += '<ul class="blk">'; inList = true; } html += '<li>' + mdInline(li[1]) + '</li>'; return; }
+      if (li) {
+        flushPara(); if (!inList) { html += '<ul class="blk">'; inList = true; }
+        var task = /^\[([ xX])\]\s+(.*)$/.exec(li[1]);
+        html += task
+          ? '<li class="task"><input type="checkbox" disabled' + (task[1] !== ' ' ? ' checked' : '') + '>' + mdInline(task[2]) + '</li>'
+          : '<li>' + mdInline(li[1]) + '</li>';
+        i++; continue;
+      }
       para.push(t);
-    });
+      i++;
+    }
     flushPara(); closeList();
     return html || '<p class="blk">(No readable text came back for this article.)</p>';
+  }
+
+  /* ── Mermaid diagrams, loaded on demand ──────────────────────────────── *
+   * Clippings come from arbitrary external articles, so a ```mermaid``` fence
+   * is rendered above as escaped source in a <pre class="mermaid">. Turning
+   * that into an actual diagram needs the mermaid library, which this file
+   * (already the internet-facing half of the app) loads lazily from a CDN —
+   * only when a clipping actually contains one, never as a page dependency. */
+  var MERMAID_SRC = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  var mermaidReady = null;
+  function ensureMermaid() {
+    if (mermaidReady) return mermaidReady;
+    mermaidReady = new Promise(function (resolve, reject) {
+      if (window.mermaid) { resolve(window.mermaid); return; }
+      var s = document.createElement('script');
+      s.src = MERMAID_SRC;
+      s.onload = function () {
+        if (!window.mermaid) { reject(new Error('Mermaid loaded but did not attach itself.')); return; }
+        // strict: diagram text is untrusted external content, not our own prose.
+        window.mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral' });
+        resolve(window.mermaid);
+      };
+      s.onerror = function () { reject(new Error('Could not load the diagram renderer (offline?).')); };
+      document.head.appendChild(s);
+    });
+    return mermaidReady;
+  }
+  function renderMermaid(container) {
+    var nodes = container && container.querySelectorAll ? Array.prototype.slice.call(container.querySelectorAll('pre.mermaid')) : [];
+    if (!nodes.length) return Promise.resolve();
+    return ensureMermaid().then(function (mermaid) {
+      return mermaid.run({ nodes: nodes });
+    }).catch(function (err) {
+      // Leave the raw diagram source visible (already legible in the <pre>)
+      // and note why it isn't a picture, rather than failing the whole page.
+      nodes.forEach(function (n) {
+        if (!n.querySelector('.mermaid-note')) {
+          var note = document.createElement('div');
+          note.className = 'mermaid-note';
+          note.textContent = err.message || 'Could not render this diagram.';
+          n.appendChild(note);
+        }
+      });
+    });
   }
 
   window.Clip = {
     list: list, get: get, add: add, remove: remove,
     retry: retry, markRead: markRead, promote: promote,
-    handoff: handoff, render: toHtml, hostOf: hostOf
+    handoff: handoff, render: toHtml, hostOf: hostOf,
+    renderMermaid: renderMermaid
   };
 })();
