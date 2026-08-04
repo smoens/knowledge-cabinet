@@ -75,6 +75,7 @@
       return res.text();
     }).then(function (raw) { return parseReaderText(raw, url); });
   }
+  var MAX_MARKDOWN_CHARS = 400000; // ~400KB of text is generous for any article; caps memory/IndexedDB pressure
   function parseReaderText(raw, url) {
     var title = '', published = '', body = raw;
     var mTitle = /^Title:\s*(.*)$/m.exec(raw); if (mTitle) title = mTitle[1].trim();
@@ -83,10 +84,18 @@
     if (idx >= 0) body = raw.slice(idx + 'Markdown Content:'.length).trim();
     if (!title) title = hostOf(url) || url;
     var excerpt = body.replace(/[#*`>_\[\]!]/g, '').replace(/\s+/g, ' ').trim().slice(0, 220);
-    return { title: title, published: published, markdown: body, excerpt: excerpt, words: body.split(/\s+/).filter(Boolean).length };
+    var words = body.split(/\s+/).filter(Boolean).length;
+    if (body.length > MAX_MARKDOWN_CHARS) body = body.slice(0, MAX_MARKDOWN_CHARS) + '\n\n> *(clipped — the article ran longer than this tray keeps in full)*';
+    return { title: title, published: published, markdown: body, excerpt: excerpt, words: words };
   }
 
   /* ── Public API ───────────────────────────────────────────────────────── */
+  // A discard can land while a fetch is still in flight; without this guard
+  // the fetch's eventual put() would resurrect the deleted record. Only
+  // write the settled result back if the item is still there.
+  function writeIfPresent(item) {
+    return get(item.id).then(function (existing) { return existing ? put(item) : item; });
+  }
   function add(rawUrl, note) {
     var url = normalizeUrl(rawUrl);
     if (!url) return Promise.reject(new Error('Paste an article URL first.'));
@@ -99,10 +108,15 @@
         item.title = parsed.title; item.published = parsed.published;
         item.markdown = parsed.markdown; item.excerpt = parsed.excerpt; item.words = parsed.words;
         item.status = 'unread';
-        return put(item);
+        return writeIfPresent(item);
       }).catch(function (err) {
+        // If we got this far because the *store* rejected (e.g. quota
+        // exceeded) rather than the fetch, item.markdown may already be a
+        // huge string — drop it so the small error record can actually be
+        // written and the row doesn't get stuck in "fetching" forever.
+        delete item.markdown;
         item.status = 'error'; item.error = err.message || String(err);
-        return put(item).then(function () { throw err; });
+        return writeIfPresent(item).then(function () { throw err; });
       });
     });
   }
@@ -115,10 +129,11 @@
           item.title = parsed.title; item.published = parsed.published;
           item.markdown = parsed.markdown; item.excerpt = parsed.excerpt; item.words = parsed.words;
           item.status = 'unread';
-          return put(item);
+          return writeIfPresent(item);
         }).catch(function (err) {
+          delete item.markdown;
           item.status = 'error'; item.error = err.message || String(err);
-          return put(item).then(function () { throw err; });
+          return writeIfPresent(item).then(function () { throw err; });
         });
       });
     });
@@ -164,6 +179,9 @@
     // Markdown allows an optional "title" after the URL: [x](url "title").
     var m = /^(\S+)(?:\s+"([^"]*)")?$/.exec(String(dest).trim());
     var href = (m ? m[1] : dest).replace(/"/g, '%22');
+    // Fetched markdown is untrusted: reject javascript:/data:/etc so a
+    // crafted link can't execute on click. Only http(s)/mailto get an <a>.
+    if (!/^(https?:|mailto:)/i.test(href)) return text;
     var title = m && m[2] ? ' title="' + m[2].replace(/"/g, '&quot;') + '"' : '';
     return '<a href="' + href + '"' + title + ' target="_blank" rel="noopener">' + text + '</a>';
   }

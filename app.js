@@ -1196,7 +1196,7 @@
         '<p class="room-lede">Paste an article and it is fetched and parsed on the spot, then read here at reading width. Nothing here joins the book until you promote it, and this tray lives only in this browser \u2014 not in the collection\u2019s repository.</p>' +
       '</div>' +
       '<form class="clip-add" id="clipAdd">' +
-        '<input type="url" id="clipUrl" placeholder="Paste an article URL\u2026" autocomplete="off" required>' +
+        '<input type="text" inputmode="url" id="clipUrl" placeholder="Paste an article URL\u2026" autocomplete="off" required>' +
         '<button class="btn" type="submit">Fetch and file</button>' +
       '</form>' +
       '<div class="clip-list" id="clipList"><p class="empty-note">Loading the tray\u2026</p></div>';
