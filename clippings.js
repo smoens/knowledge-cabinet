@@ -213,6 +213,20 @@
   function escHtml(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
+  // Footnote definitions ("[^id]: text") collected up front by toHtml() for
+  // the document currently being rendered, so an inline "[^id]" reference
+  // resolves correctly no matter where in the source its definition sits.
+  // Module-scoped rather than a toHtml() local because mdInline() isn't
+  // nested inside toHtml() — reset at the top of every toHtml() call.
+  var footnoteDefs = {}, footnoteOrder = [];
+  // A small allowlist of harmless, attribute-free inline tags that GFM
+  // articles occasionally embed literally (line breaks, keyboard keys,
+  // highlights). Everything else stays HTML-escaped: the reader proxy
+  // scrapes arbitrary third-party pages, so passing arbitrary raw HTML
+  // through to innerHTML would let a hostile page run script in this app's
+  // origin. This allowlist has no attributes and no scriptable tags, so
+  // there's nothing here for an attacker to abuse.
+  var SAFE_INLINE_TAGS = /&lt;(\/?)(br|sub|sup|kbd|mark|small|wbr)\s*\/?&gt;/gi;
   function mdInline(s) {
     s = escHtml(s);
     // Pull inline code out first (as opaque placeholders) so link/emphasis
@@ -224,6 +238,16 @@
       return '\u0000' + (codeSpans.length - 1) + '\u0000';
     });
     s = s.replace(new RegExp('!\\[([^\\]]*)\\]' + DEST, 'g'), ''); // drop images, keep prose flowing
+    // Footnote reference: [^id] -> a numbered, linked superscript, but only
+    // when "id" has a matching "[^id]: ..." definition somewhere in the
+    // document (collected by toHtml before this runs) — otherwise leave the
+    // brackets as literal text rather than link to nothing.
+    s = s.replace(/\[\^([^\]]+)\]/g, function (all, id) {
+      if (!Object.prototype.hasOwnProperty.call(footnoteDefs, id)) return all;
+      var idx = footnoteOrder.indexOf(id);
+      if (idx === -1) { footnoteOrder.push(id); idx = footnoteOrder.length - 1; }
+      return '<sup class="fnref"><a id="fnref-' + idx + '" href="#fn-' + idx + '">' + (idx + 1) + '</a></sup>';
+    });
     s = s.replace(new RegExp('\\[\\[([^\\]]+)\\]\\]' + DEST, 'g'), function (all, text, dest) { return link('[' + text + ']', dest); }); // wiki-style [[1]](url) footnotes
     s = s.replace(new RegExp('\\[([^\\]]+)\\]' + DEST, 'g'), function (all, text, dest) { return link(text, dest); });
     s = s.replace(/~~([^~]+)~~/g, '<s>$1</s>');
@@ -233,6 +257,7 @@
     // Underscore italics, CommonMark-style: only at a word boundary, so
     // "snake_case_name" is left alone but "_word_" still italicizes.
     s = s.replace(/(^|[^\w_])_([^\s_][^_]*?)_(?![\w_])/g, '$1<i>$2</i>');
+    s = s.replace(SAFE_INLINE_TAGS, '<$1$2>');
     s = s.replace(/\u0000(\d+)\u0000/g, function (all, idx) { return '<code>' + codeSpans[+idx] + '</code>'; });
     return s;
   }
@@ -255,21 +280,46 @@
   // getting run into the following paragraph.
   var MERMAID_HEAD = /^(?:(?:flowchart|graph)\s+(?:TB|TD|BT|RL|LR)|sequenceDiagram|classDiagram(?:-v2)?|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie(?:\s+showData)?(?:\s+title\s+.+)?|gitGraph(?:\s*:.*)?|mindmap|timeline|quadrantChart|sankey-beta|block-beta|requirementDiagram|C4(?:Context|Container|Component|Dynamic|Deployment)|xychart-beta)$/;
   var MERMAID_BODY_HINT = /(-->|->>|-\.->|==>|--[ox]>?|:::|^end$|^subgraph\b|^participant\b|^class\b|^state\b|^note\b)/i;
+  // "[^id]: definition text" — a footnote definition line, GFM-style.
+  var FN_DEF = /^\[\^([^\]]+)\]:\s*(.*)$/;
   function toHtml(markdown) {
     var lines = String(markdown || '').replace(/\r\n/g, '\n').split('\n');
-    var html = '', para = [], inList = false;
+    // Footnotes are conventionally defined at the very bottom of a document
+    // but referenced earlier, so collect every definition in one pass up
+    // front — mdInline() (called line-by-line below) needs the full map
+    // before it ever meets the first "[^id]" reference.
+    footnoteDefs = {}; footnoteOrder = [];
+    lines.forEach(function (line) {
+      var d = FN_DEF.exec(line.trim());
+      if (d) footnoteDefs[d[1]] = d[2];
+    });
+    var html = '', para = [];
+    // Open <ul>/<ol> frames, one per nesting level, keyed by source
+    // indentation so "  - nested" opens inside the <li> of its parent
+    // instead of flattening to the same level.
+    var listStack = [];
     function flushPara() { if (para.length) { html += '<p class="blk">' + mdInline(para.join(' ')) + '</p>'; para = []; } }
-    function closeList() { if (inList) { html += '</ul>'; inList = false; } }
+    function closeAllLists() {
+      while (listStack.length) {
+        var top = listStack.pop();
+        if (top.liOpen) html += '</li>';
+        html += '</' + top.tag + '>';
+      }
+    }
     var i = 0;
     while (i < lines.length) {
       var t = lines[i].trim();
+
+      // Already captured by the footnote pre-pass above — drop the
+      // definition line itself so it doesn't get read as a stray paragraph.
+      if (FN_DEF.test(t)) { i++; continue; }
 
       // Fenced code block: ```lang ... ``` — kept verbatim, never run through
       // mdInline, so pipes/asterisks/backticks inside code print as typed.
       // A ```mermaid fence renders as a live diagram (see renderMermaid()).
       var fence = /^```\s*([\w-]*)\s*$/.exec(t);
       if (fence) {
-        flushPara(); closeList();
+        flushPara(); closeAllLists();
         var lang = fence[1].toLowerCase();
         var code = [];
         i++;
@@ -288,7 +338,7 @@
       // follow as the diagram body, stopping at the first line that looks
       // like ordinary unindented prose.
       if (MERMAID_HEAD.test(t)) {
-        flushPara(); closeList();
+        flushPara(); closeAllLists();
         var diagram = [t];
         i++;
         while (i < lines.length) {
@@ -305,7 +355,7 @@
 
       // GFM table: a row containing "|", followed by a "|---|---|" rule.
       if (t.indexOf('|') >= 0 && i + 1 < lines.length && TABLE_SEP.test(lines[i + 1].trim())) {
-        flushPara(); closeList();
+        flushPara(); closeAllLists();
         var head = splitTableRow(t);
         i += 2;
         var rows = [];
@@ -321,26 +371,80 @@
         continue;
       }
 
-      if (!t) { flushPara(); closeList(); i++; continue; }
+      if (!t) { flushPara(); closeAllLists(); i++; continue; }
+      // Setext heading: a single-line paragraph immediately followed by an
+      // "===" (h1) or "---"/"-" (h2) underline. Only recognized when it
+      // starts a fresh paragraph (para is still empty) — matches the
+      // common single-line usage without trying to fold a whole multi-line
+      // paragraph into a heading. The underline itself must not also read
+      // as a thematic break candidate on its own line (that's handled by
+      // the HR check just below when it isn't preceded by text).
+      if (para.length === 0 && i + 1 < lines.length) {
+        var underline = lines[i + 1].trim();
+        var looksLikeHr = /^(-{3,}|\*{3,}|_{3,})$/.test(t.replace(/\s+/g, '')) && /^[-*_\s]+$/.test(t);
+        if (/^=+$/.test(underline) && !looksLikeHr) {
+          flushPara(); closeAllLists(); html += '<h2 class="blk">' + mdInline(t) + '</h2>'; i += 2; continue;
+        }
+        if (/^-+$/.test(underline) && !looksLikeHr && !/^[-*]\s/.test(t) && !/^\d+\.\s/.test(t) && !/^#{1,6}\s/.test(t) && !/^>/.test(t)) {
+          flushPara(); closeAllLists(); html += '<h3 class="blk">' + mdInline(t) + '</h3>'; i += 2; continue;
+        }
+      }
       // Thematic break: 3+ of the same rule character, spaces allowed
       // between them ("---", "***", "___", "- - -"), and nothing else.
-      if (/^(-{3,}|\*{3,}|_{3,})$/.test(t.replace(/\s+/g, '')) && /^[-*_\s]+$/.test(t)) { flushPara(); closeList(); html += '<hr class="blk">'; i++; continue; }
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(t.replace(/\s+/g, '')) && /^[-*_\s]+$/.test(t)) { flushPara(); closeAllLists(); html += '<hr class="blk">'; i++; continue; }
       var h = /^(#{1,6})\s+(.*)$/.exec(t);
-      if (h) { flushPara(); closeList(); var tag = h[1].length === 1 ? 'h2' : 'h3'; html += '<' + tag + ' class="blk">' + mdInline(h[2]) + '</' + tag + '>'; i++; continue; }
-      if (/^>\s?/.test(t)) { flushPara(); closeList(); html += '<div class="aside blk">' + mdInline(t.replace(/^>\s?/, '')) + '</div>'; i++; continue; }
-      var li = /^[-*]\s+(.*)$/.exec(t) || /^\d+\.\s+(.*)$/.exec(t);
-      if (li) {
-        flushPara(); if (!inList) { html += '<ul class="blk">'; inList = true; }
-        var task = /^\[([ xX])\]\s+(.*)$/.exec(li[1]);
+      if (h) { flushPara(); closeAllLists(); var tag = h[1].length === 1 ? 'h2' : 'h3'; html += '<' + tag + ' class="blk">' + mdInline(h[2]) + '</' + tag + '>'; i++; continue; }
+      if (/^>\s?/.test(t)) { flushPara(); closeAllLists(); html += '<div class="aside blk">' + mdInline(t.replace(/^>\s?/, '')) + '</div>'; i++; continue; }
+      var uli = /^[-*]\s+(.*)$/.exec(t);
+      var oli = /^(\d+)\.\s+(.*)$/.exec(t);
+      if (uli || oli) {
+        flushPara();
+        // Indent (tabs counted as 4 spaces) decides nesting depth.
+        var indent = /^(\s*)/.exec(lines[i])[1].replace(/\t/g, '    ').length;
+        var listTag = uli ? 'ul' : 'ol';
+        var content = uli ? uli[1] : oli[2];
+        var startNum = oli ? parseInt(oli[1], 10) : null;
+        var openTag = listTag === 'ol' && startNum && startNum !== 1
+          ? '<ol class="blk" start="' + startNum + '">' : '<' + listTag + ' class="blk">';
+
+        while (listStack.length && listStack[listStack.length - 1].indent > indent) {
+          var popped = listStack.pop();
+          if (popped.liOpen) html += '</li>';
+          html += '</' + popped.tag + '>';
+        }
+        var top = listStack[listStack.length - 1];
+        if (!top || top.indent < indent) {
+          html += openTag;
+          listStack.push({ tag: listTag, indent: indent, liOpen: false });
+        } else if (top.tag !== listTag) {
+          if (top.liOpen) html += '</li>';
+          html += '</' + top.tag + '>';
+          listStack.pop();
+          html += openTag;
+          listStack.push({ tag: listTag, indent: indent, liOpen: false });
+        } else if (top.liOpen) {
+          html += '</li>';
+          top.liOpen = false;
+        }
+        var cur = listStack[listStack.length - 1];
+        var task = /^\[([ xX])\]\s+(.*)$/.exec(content);
         html += task
-          ? '<li class="task"><input type="checkbox" disabled' + (task[1] !== ' ' ? ' checked' : '') + '>' + mdInline(task[2]) + '</li>'
-          : '<li>' + mdInline(li[1]) + '</li>';
+          ? '<li class="task"><input type="checkbox" disabled' + (task[1] !== ' ' ? ' checked' : '') + '>' + mdInline(task[2])
+          : '<li>' + mdInline(content);
+        cur.liOpen = true;
         i++; continue;
       }
       para.push(t);
       i++;
     }
-    flushPara(); closeList();
+    flushPara(); closeAllLists();
+    if (footnoteOrder.length) {
+      html += '<div class="footnotes blk"><hr>' +
+        '<ol>' + footnoteOrder.map(function (id, idx) {
+          return '<li id="fn-' + idx + '">' + mdInline(footnoteDefs[id]) +
+            ' <a href="#fnref-' + idx + '" class="fnback">↩</a></li>';
+        }).join('') + '</ol></div>';
+    }
     return html || '<p class="blk">(No readable text came back for this article.)</p>';
   }
 

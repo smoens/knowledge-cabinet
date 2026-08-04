@@ -500,18 +500,34 @@ button.bay:hover .bay-act { color: #f6d894; }
   text-wrap: pretty;
 }
 .reading ul { margin: 0 0 1.3rem; padding: 0; list-style: none; }
+.reading ol { margin: 0 0 1.3rem; padding: 0; list-style: none; counter-reset: kc-ol; }
 .reading ul li {
   position: relative; padding-left: 1.5rem; margin-bottom: .6rem;
   font: 400 clamp(1.02rem, .3vw + .96rem, 1.13rem)/1.58 var(--read); color: #2b2317;
+}
+.reading ol li {
+  position: relative; padding-left: 1.9rem; margin-bottom: .6rem;
+  font: 400 clamp(1.02rem, .3vw + .96rem, 1.13rem)/1.58 var(--read); color: #2b2317;
+  counter-increment: kc-ol;
 }
 .reading ul li::before {
   content: ""; position: absolute; left: .28rem; top: .68em; width: .42rem; height: .42rem;
   border: 1px solid var(--brass-dim); transform: rotate(45deg);
 }
+.reading ol li::before {
+  content: counter(kc-ol) "."; position: absolute; left: 0; top: 0;
+  font: 400 .95em/1.58 var(--read); color: var(--brass-dim);
+}
+.reading ol[start] { counter-reset: kc-ol calc(attr(start integer) - 1); }
 .reading ul li.task { padding-left: 1.6rem; }
 .reading ul li.task::before { display: none; }
 .reading ul li.task input[type="checkbox"] {
   position: absolute; left: 0; top: .3em; accent-color: var(--brass-dim);
+}
+/* Nested lists: sit inside the parent <li>, indented one step further and
+   with a little breathing room instead of the block-level paragraph gap. */
+.reading ul ul, .reading ul ol, .reading ol ul, .reading ol ol {
+  margin: .5rem 0 .5rem 1.3rem;
 }
 .reading .aside {
   margin: 1.8rem 0; padding: 1rem 0 1rem 1.2rem;
@@ -522,6 +538,24 @@ button.bay:hover .bay-act { color: #f6d894; }
   margin: 2rem 0; border: none; border-top: 1px solid var(--ivory-3);
 }
 .reading s { color: var(--ink-2); }
+/* Footnotes: a quiet, separated block at the point they're rendered (end
+   of the article body), matching the Label ramp used elsewhere for
+   ancillary/reference text. */
+.reading .footnotes { margin: 2.2rem 0 0; }
+.reading .footnotes hr { margin: 0 0 1.2rem; }
+.reading .footnotes ol { counter-reset: kc-fn; }
+.reading .footnotes li {
+  padding-left: 1.6rem; margin-bottom: .5rem; counter-increment: kc-fn;
+  font: 400 .88rem/1.55 var(--read); color: var(--ink-2);
+}
+.reading .footnotes li::before {
+  content: counter(kc-fn) "."; position: absolute; left: 0;
+  font: 400 .88em/1.55 var(--read); color: var(--brass-dim);
+}
+.reading sup.fnref a, .reading .fnback {
+  color: var(--brass-dim); text-decoration: none;
+}
+.reading sup.fnref a:hover, .reading .fnback:hover { text-decoration: underline; }
 .reading pre {
   margin: 1.6rem 0; padding: 1.1rem 1.2rem; overflow-x: auto;
   background: #26201a; color: #ede2cf;
