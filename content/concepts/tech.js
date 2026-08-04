@@ -216,5 +216,43 @@ Object.assign(window.CABINET_CONCEPT_DETAILS, {
         "url": "https://learn.microsoft.com/en-us/fabric/onelake/onelake-medallion-lakehouse-architecture"
       }
     ]
+  },
+  "deferred-write": {
+    "fundamental": "A component that processes untrusted input can be steered into producing anything; safety comes not from making it trustworthy but from making its output inert until something else chooses to act on it.",
+    "mechanism": "Split execution into a proposing stage with no ambient write capability, whose only output is data — a requested action, not the action itself — and a separate acting stage that reads that request and decides, with its own narrower permissions, whether to perform it.",
+    "sources": [
+      {
+        "label": "GitHub Agentic Workflows — Safe Outputs reference",
+        "url": "https://github.github.com/gh-aw/reference/safe-outputs/"
+      }
+    ]
+  },
+  "least-privilege": {
+    "fundamental": "Every permission a component holds is a permission its compromise hands over. The size of a credential should track the size of the current step, not the size of the role.",
+    "mechanism": "Scope each stage's token to exactly what that stage does — read-only where nothing is written, and write access limited to the one operation a job exists to perform — rather than issuing one broad credential up front."
+  },
+  "defense-in-depth": {
+    "fundamental": "Design each layer as if the layer above it has already failed. Security then depends on the odds of every control failing at once, not on any single control being perfect.",
+    "mechanism": "Stack controls built on different assumptions and different failure modes — kernel and container isolation, scoped tokens and validated configuration, staged execution enforced over time — so a breach of one is still contained by the others.",
+    "sources": [
+      {
+        "label": "GitHub Agentic Workflows — Security Architecture",
+        "url": "https://github.github.com/gh-aw/introduction/architecture/"
+      }
+    ]
+  },
+  "blast-radius": {
+    "fundamental": "You cannot promise a component will never be compromised. You can promise what happens if it is — and that second number, not the first, is where design effort pays off.",
+    "mechanism": "For every component, ask what it could read, reach, or change if it were fully controlled by an adversary right now. Shrink that answer with narrower tokens, no shared state, and one stage at a time, rather than only hardening the component itself."
+  },
+  "sandbox": {
+    "fundamental": "A control only holds if it survives the compromise of what it constrains. A sandbox works because it is enforced by a layer the sandboxed process cannot reach or negotiate with.",
+    "mechanism": "Isolate memory, filesystem and network at the substrate below the process — containers for memory and filesystem, an egress proxy with a domain allowlist for network — so the boundary holds regardless of what the process inside it does.",
+    "sources": [
+      {
+        "label": "GitHub Agentic Workflows — Security Architecture",
+        "url": "https://github.github.com/gh-aw/introduction/architecture/"
+      }
+    ]
   }
 });

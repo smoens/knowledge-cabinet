@@ -339,7 +339,8 @@ window.BOOK = {
       "short": "What stays true while everything around it changes.",
       "seeAlso": [
         "first-principle",
-        "constraint"
+        "constraint",
+        "blast-radius"
       ]
     },
     {
@@ -362,7 +363,8 @@ window.BOOK = {
       "short": "Something the system is not permitted to do.",
       "seeAlso": [
         "invariant",
-        "slack"
+        "slack",
+        "least-privilege"
       ]
     },
     {
@@ -479,7 +481,8 @@ window.BOOK = {
         "shortcut",
         "zero-copy",
         "abstraction-ladder",
-        "layout-is-interface"
+        "layout-is-interface",
+        "deferred-write"
       ]
     },
     {
@@ -596,7 +599,8 @@ window.BOOK = {
         "throttling",
         "slack",
         "tail-latency",
-        "constraint"
+        "constraint",
+        "defense-in-depth"
       ]
     },
     {
@@ -649,6 +653,68 @@ window.BOOK = {
         "abstraction-ladder",
         "amortization",
         "layout-is-interface"
+      ]
+    },
+    {
+      "id": "deferred-write",
+      "term": "Deferred write",
+      "kind": "pattern",
+      "area": "tech",
+      "short": "Giving the part of a system that can be manipulated the power to request an action, never the power to perform it.",
+      "seeAlso": [
+        "least-privilege",
+        "blast-radius",
+        "indirection",
+        "invariant"
+      ]
+    },
+    {
+      "id": "least-privilege",
+      "term": "Least privilege",
+      "kind": "pattern",
+      "area": "tech",
+      "short": "Granting a component only the access its current task needs, not the access the system as a whole needs.",
+      "seeAlso": [
+        "deferred-write",
+        "blast-radius",
+        "constraint"
+      ]
+    },
+    {
+      "id": "defense-in-depth",
+      "term": "Defense in depth",
+      "kind": "pattern",
+      "area": "tech",
+      "short": "Layering independent controls so a single failure does not equal a breach.",
+      "seeAlso": [
+        "blast-radius",
+        "sandbox",
+        "progressive-degradation"
+      ]
+    },
+    {
+      "id": "blast-radius",
+      "term": "Blast radius",
+      "kind": "concept",
+      "area": "tech",
+      "short": "How much a single compromised component can affect, once it is compromised.",
+      "seeAlso": [
+        "deferred-write",
+        "defense-in-depth",
+        "sandbox",
+        "invariant"
+      ]
+    },
+    {
+      "id": "sandbox",
+      "term": "Sandbox",
+      "kind": "concept",
+      "area": "tech",
+      "short": "An execution boundary enforced by the substrate below a component, not by the component's own good behaviour.",
+      "seeAlso": [
+        "blast-radius",
+        "defense-in-depth",
+        "least-privilege"
       ]
     }
   ],
@@ -881,6 +947,27 @@ window.BOOK = {
       ],
       "workingBlockCount": 14,
       "chunk": "content/chapters/directlake.js"
+    },
+    {
+      "id": "safe-outputs",
+      "title": "Never let the part that can be fooled hold the pen",
+      "area": "tech",
+      "state": "new",
+      "added": "2026-08-04",
+      "revised": "2026-08-04",
+      "minutes": 9,
+      "summary": "An agent that reads a GitHub issue is reading its own attack surface — prompt injection is not a bug to patch out of the model. GitHub Agentic Workflows' answer is structural: the agent never holds a credential that can act on what it decides; a separate, narrower job does.",
+      "concepts": [
+        "deferred-write",
+        "least-privilege",
+        "defense-in-depth",
+        "sandbox",
+        "blast-radius",
+        "progressive-degradation",
+        "constraint"
+      ],
+      "workingBlockCount": 12,
+      "chunk": "content/chapters/safe-outputs.js"
     }
   ],
   "conceptDetailChunks": {
@@ -913,7 +1000,7 @@ window.BOOK = {
     "interleaving": 1,
     "analogy": 1,
     "invariant": 2,
-    "constraint": 1,
+    "constraint": 2,
     "first-principle": 1,
     "transfer": 2,
     "curse-of-knowledge": 2,
@@ -935,8 +1022,13 @@ window.BOOK = {
     "bursting": 1,
     "smoothing": 2,
     "throttling": 2,
-    "progressive-degradation": 1,
+    "progressive-degradation": 2,
     "framing": 2,
-    "transcoding": 2
+    "transcoding": 2,
+    "deferred-write": 2,
+    "least-privilege": 1,
+    "defense-in-depth": 1,
+    "sandbox": 2,
+    "blast-radius": 2
   }
 };
