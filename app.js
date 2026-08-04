@@ -450,7 +450,12 @@
       toast('Filed. Parsed and ready to read.');
       if (current === 'clippings') paintClipList();
     }).catch(function (err) {
-      toast(err && err.duplicate ? 'Already in the tray: ' + (err.duplicate.title || err.duplicate.url) : (err && err.message) || 'Could not fetch that article.');
+      if (err && err.duplicate) {
+        toast('Already in the tray \u2014 opening it.');
+        go('clipreader', err.duplicate.id);
+        return;
+      }
+      toast((err && err.message) || 'Could not fetch that article.');
       if (current === 'clippings') paintClipList();
     });
     return true;
@@ -1240,6 +1245,16 @@
   }
   function agoMs(ms) { return ms ? ago(new Date(ms).toISOString().slice(0, 10)) : '\u2014'; }
 
+  /* A bookmarklet is generated from wherever this page is actually running
+     (origin + pathname), not a hardcoded domain, so it keeps working on a
+     fork, a custom domain, or a GitHub Pages project subpath. Clicking it on
+     any page opens the cabinet in a new tab with that page's URL, which
+     handleIncomingShare() files into the clippings tray on load. */
+  function bookmarkletHref() {
+    var base = (location.origin + location.pathname).replace(/'/g, '%27');
+    return "javascript:(function(){window.open('" + base + "?url='+encodeURIComponent(location.href),'_blank')})();";
+  }
+
   function renderClippings() {
     var v = $('#view-clippings');
     if (!window.Clip) {
@@ -1256,7 +1271,17 @@
         '<input type="text" inputmode="url" id="clipUrl" placeholder="Paste an article URL\u2026" autocomplete="off" required>' +
         '<button class="btn" type="submit">Fetch and file</button>' +
       '</form>' +
+      '<section class="clip-bookmarklet">' +
+        '<a class="btn" id="clipBookmarklet" href="' + esc(bookmarkletHref()) + '">' + icon('i-share') + 'Send to Cabinet</a>' +
+        '<p>Drag this to your bookmarks bar. Click it on any page to file that page here in a new tab \u2014 no copy, no paste. On iPhone, use a Shortcuts action instead; the Share Sheet cannot hold a bookmarklet.</p>' +
+      '</section>' +
       '<div class="clip-list" id="clipList"><p class="empty-note">Loading the tray\u2026</p></div>';
+
+    var bmLink = $('#clipBookmarklet');
+    if (bmLink) bmLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      toast('Drag this to your bookmarks bar \u2014 clicking it here has nothing to file.');
+    });
 
     $('#clipAdd').addEventListener('submit', function (e) {
       e.preventDefault();

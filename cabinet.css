@@ -881,6 +881,14 @@ button.bay:hover .bay-act { color: #f6d894; }
 .clip-add input::placeholder { color: var(--on-cab-3); }
 .clip-add input:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
 
+.clip-bookmarklet {
+  max-width: 1320px; margin: 0 auto clamp(1.4rem, 3vw, 2rem);
+  display: flex; align-items: center; gap: .9rem; flex-wrap: wrap;
+}
+.clip-bookmarklet .btn { display: inline-flex; align-items: center; gap: .4rem; text-decoration: none; white-space: nowrap; }
+.clip-bookmarklet .btn .ic { width: 1rem; height: 1rem; }
+.clip-bookmarklet p { margin: 0; flex: 1 1 20rem; font: 400 .92rem/1.6 var(--read); color: var(--on-cab-3); }
+
 .clip-list { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; }
 .empty-note { padding: 1.4rem .2rem; font: 400 .92rem/1.6 var(--read); color: var(--on-cab-3); }
 
