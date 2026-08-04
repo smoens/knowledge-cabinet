@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  copilot-requests: write
 engine: copilot
 network:
   # `defaults` is basic infrastructure only. Every source domain must be listed explicitly (or covered by a wildcard) or the fetch is blocked by the firewall. When you add a source on a new domain in content-sources.yml, add its domain here too, then run: gh aw compile content-watch --strict
