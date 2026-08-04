@@ -94,12 +94,38 @@
     }).then(function (raw) { return parseReaderText(raw, url); });
   }
   var MAX_MARKDOWN_CHARS = 400000; // ~400KB of text is generous for any article; caps memory/IndexedDB pressure
+  // Some sites (Microsoft Learn among them) run a JS framework whose skip-nav
+  // link, header, sidebar breadcrumbs, and "Ask/Summarize" widget all render
+  // as one unbroken run of text ahead of the real article body — Jina's
+  // readability pass occasionally keeps that run instead of (or alongside)
+  // the actual content. It always starts with the accessibility skip-link
+  // phrase and, unlike real prose, runs long with no sentence punctuation
+  // breaking it up, so it's safe to recognize and drop as page chrome.
+  var SKIP_NAV_RE = /^\[?skip to (?:main )?content\b/i;
+  function stripLeadingChrome(body) {
+    var blocks = body.split(/\n{2,}/);
+    if (blocks.length > 1 && blocks[0].length > 200 && SKIP_NAV_RE.test(blocks[0].trim())) blocks.shift();
+    return blocks.join('\n\n');
+  }
   function parseReaderText(raw, url) {
+    // The reader proxy still answers with HTTP 200 (it successfully fetched
+    // *something*) even when the target page itself was a 404/410/5xx — that
+    // fact only shows up as a "Warning:" line in the body. Surface it as a
+    // real failure instead of filing the target site's error page as if it
+    // were an article.
+    var mWarn = /^Warning:\s*Target URL returned error (\d{3})\b[^\n]*/m.exec(raw);
+    if (mWarn) {
+      var code = mWarn[1];
+      throw new Error(code === '404'
+        ? 'The original page returned a 404 — it may have moved or been removed.'
+        : 'The original page returned an error (' + code + ').');
+    }
     var title = '', published = '', body = raw;
     var mTitle = /^Title:\s*(.*)$/m.exec(raw); if (mTitle) title = mTitle[1].trim();
     var mPub = /^Published Time:\s*(.*)$/m.exec(raw); if (mPub) published = mPub[1].trim();
     var idx = raw.indexOf('Markdown Content:');
     if (idx >= 0) body = raw.slice(idx + 'Markdown Content:'.length).trim();
+    body = stripLeadingChrome(body);
     if (!title) title = hostOf(url) || url;
     var excerpt = body.replace(/[#*`>_\[\]!]/g, '').replace(/\s+/g, ' ').trim().slice(0, 220);
     var words = body.split(/\s+/).filter(Boolean).length;
@@ -282,6 +308,11 @@
   var MERMAID_BODY_HINT = /(-->|->>|-\.->|==>|--[ox]>?|:::|^end$|^subgraph\b|^participant\b|^class\b|^state\b|^note\b)/i;
   // "[^id]: definition text" — a footnote definition line, GFM-style.
   var FN_DEF = /^\[\^([^\]]+)\]:\s*(.*)$/;
+  function slugify(s) {
+    return String(s || '').replace(/<[^>]*>/g, '').toLowerCase()
+      .replace(/[`*_\[\]()>#~]/g, '').trim().replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '').slice(0, 60) || 'section';
+  }
   function toHtml(markdown) {
     var lines = String(markdown || '').replace(/\r\n/g, '\n').split('\n');
     // Footnotes are conventionally defined at the very bottom of a document
@@ -294,6 +325,10 @@
       if (d) footnoteDefs[d[1]] = d[2];
     });
     var html = '', para = [];
+    // Top-level ("# heading") sections, collected as we go so a table of
+    // contents can be prepended once the whole article has been walked —
+    // built from real ids assigned below, not guessed after the fact.
+    var toc = [], tocSlugs = {};
     // Open <ul>/<ol> frames, one per nesting level, keyed by source
     // indentation so "  - nested" opens inside the <li> of its parent
     // instead of flattening to the same level.
@@ -393,7 +428,23 @@
       // between them ("---", "***", "___", "- - -"), and nothing else.
       if (/^(-{3,}|\*{3,}|_{3,})$/.test(t.replace(/\s+/g, '')) && /^[-*_\s]+$/.test(t)) { flushPara(); closeAllLists(); html += '<hr class="blk">'; i++; continue; }
       var h = /^(#{1,6})\s+(.*)$/.exec(t);
-      if (h) { flushPara(); closeAllLists(); var tag = h[1].length === 1 ? 'h2' : 'h3'; html += '<' + tag + ' class="blk">' + mdInline(h[2]) + '</' + tag + '>'; i++; continue; }
+      if (h) {
+        flushPara(); closeAllLists();
+        var tag = h[1].length === 1 ? 'h2' : 'h3';
+        // Only the article's top-level (single "#") sections are tracked
+        // for the table of contents — deeper headings collapse to the same
+        // <h3> visual weight and would make the TOC as long as the article.
+        if (tag === 'h2') {
+          var slug = slugify(h[2]), base = slug, n = 2;
+          while (tocSlugs[slug]) { slug = base + '-' + n; n++; }
+          tocSlugs[slug] = true;
+          toc.push({ id: slug, text: h[2] });
+          html += '<h2 class="blk" id="' + slug + '">' + mdInline(h[2]) + '</h2>';
+        } else {
+          html += '<h3 class="blk">' + mdInline(h[2]) + '</h3>';
+        }
+        i++; continue;
+      }
       // Blockquote: markdown allows a quote to run across several
       // consecutive "> " lines, with a lone ">" marking a paragraph break
       // inside it. Rendering each source line as its own
@@ -469,7 +520,19 @@
             ' <a href="#fnref-' + idx + '" class="fnback">↩</a></li>';
         }).join('') + '</ol></div>';
     }
-    return html || '<p class="blk">(No readable text came back for this article.)</p>';
+    if (!html) return '<p class="blk">(No readable text came back for this article.)</p>';
+    // A table of contents only earns its place once there's more than one
+    // top-level section to jump between — for a two-paragraph note it would
+    // just be clutter above the note itself. Buttons rather than "#id"
+    // anchors, since the app's own hash router treats "#<anything-unknown>"
+    // as a dead route and would bounce the reader back to the cabinet.
+    if (toc.length > 1) {
+      html = '<nav class="clip-toc blk"><b class="clip-toc-label">Contents</b><ol>' +
+        toc.map(function (e) {
+          return '<li><button type="button" class="clip-toc-link" data-toc="' + e.id + '">' + mdInline(e.text) + '</button></li>';
+        }).join('') + '</ol></nav>' + html;
+    }
+    return html;
   }
 
   /* ── Mermaid diagrams, loaded on demand ──────────────────────────────── *

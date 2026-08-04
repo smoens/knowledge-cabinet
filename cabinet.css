@@ -540,6 +540,27 @@ button.bay:hover .bay-act { color: #f6d894; }
   margin: 2rem 0; border: none; border-top: 1px solid var(--ivory-3);
 }
 .reading s { color: var(--ink-2); }
+/* Table of contents for a clipping's level-1 headings: a quiet bordered box
+   at the top of the article, styled like the .xrefs/.prov reference blocks
+   below it rather than a new visual idiom. */
+.clip-toc {
+  margin: 0 0 1.8rem; padding: 1rem 1.2rem;
+  border: 1px solid var(--ivory-3);
+}
+.clip-toc-label {
+  display: block; margin: 0 0 .7rem;
+  font: 500 .68rem/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3);
+}
+.clip-toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; }
+.clip-toc li { counter-increment: toc; margin: 0 0 .4rem; }
+.clip-toc li:last-child { margin-bottom: 0; }
+.clip-toc li::before {
+  content: counter(toc) '.'; display: inline-block; width: 1.6rem; color: var(--ink-3); font: 400 .9rem/1.4 var(--mono);
+}
+.clip-toc-link {
+  font: 400 1rem/1.4 var(--read); color: var(--ink); background: none; border: none; padding: 0; cursor: pointer; text-align: left;
+}
+.clip-toc-link:hover, .clip-toc-link:focus-visible { color: var(--brass-lit); }
 /* Footnotes: a quiet, separated block at the point they're rendered (end
    of the article body), matching the Label ramp used elsewhere for
    ancillary/reference text. */

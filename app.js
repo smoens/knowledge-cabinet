@@ -648,10 +648,8 @@
         var linked = (ch.sources || []).filter(function (s) { return s.url; });
         if (!linked.length) return tryNext();
         var s = linked[Math.floor(Math.random() * linked.length)];
-        logEvent('source', s.label, 'from ' + ch.title);
-        save();
         toast('Pulled a source at random: ' + s.label);
-        openSourceInReader(s, ch);
+        openSourceInReader(s, ch, tryNext);
       }).catch(tryNext);
     })();
   }
@@ -659,15 +657,20 @@
   /* Reads the pulled source through the same clippings tray used for pasted
      articles: fetched via the reader proxy, parsed to markdown, and rendered
      at reading width in our own theme (clipreader) rather than bounced out
-     to the raw page. Falls back to a plain new tab if that module or fetch
-     is unavailable, so the feature still works offline or if the free
-     reader proxy is down or rate-limited. */
-  function openSourceInReader(s, ch) {
-    if (!window.Clip) { window.open(s.url, '_blank', 'noopener'); return; }
+     to the raw page. Falls back to a plain new tab if that module is
+     unavailable, so the feature still works offline or if the free reader
+     proxy is down. A source the proxy reports as broken (404/410/5xx — see
+     clippings.js's Warning: detection) is skipped in favor of another random
+     pick via onFail, rather than surfacing a dead link as if it were content. */
+  function openSourceInReader(s, ch, onFail) {
+    if (!window.Clip) { logEvent('source', s.label, 'from ' + ch.title); save(); window.open(s.url, '_blank', 'noopener'); return; }
     window.Clip.add(s.url, 'Pulled at random from \u201c' + ch.title + '\u201d').then(function (item) {
+      logEvent('source', s.label, 'from ' + ch.title);
+      save();
       go('clipreader', item.id);
     }).catch(function (err) {
-      if (err.duplicate) { go('clipreader', err.duplicate.id); return; }
+      if (err.duplicate) { logEvent('source', s.label, 'from ' + ch.title); save(); go('clipreader', err.duplicate.id); return; }
+      if (onFail) { toast((err.message || 'Could not fetch that source') + ' \u2014 pulling another.'); onFail(); return; }
       toast((err.message || 'Could not fetch that article') + ' \u2014 opening it directly instead.');
       window.open(s.url, '_blank', 'noopener');
     });
@@ -1428,7 +1431,7 @@
     return '<div class="lc-top"><div><span class="lc-area">Clipping</span>' +
         '<p class="lc-title">' + esc(item.title) + '</p></div></div>' +
       '<p class="lc-rows">' + rows.map(function (p) { return esc(p[0]) + ' <b>' + esc(p[1]) + '</b>'; }).join(' <i>\u00b7</i> ') + '</p>' +
-      '<a class="btn" href="' + esc(item.url) + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:.8rem">Open original \u2197</a>';
+      '<a class="btn" href="' + esc(item.url) + '" target="_blank" rel="noopener" title="Shortcut: o" style="display:inline-block;margin-top:.8rem">Open original \u2197</a>';
   }
 
   function renderClipReader(id) {
@@ -1457,6 +1460,12 @@
           '</div>' +
         '</div>';
       $('.table-back', v).addEventListener('click', function () { go('clippings'); });
+      $$('[data-toc]', v).forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var target = document.getElementById(btn.dataset.toc);
+          if (target) target.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' });
+        });
+      });
       if (window.Clip.renderMermaid) window.Clip.renderMermaid(v);
     }).catch(function (err) {
       if (current !== 'clipreader') return;
@@ -1676,6 +1685,12 @@
     if (e.target.matches('input, textarea')) return;
     if (e.key === 'r' && !e.metaKey && !e.ctrlKey) openRandom();
     if (e.key === 's' && !e.metaKey && !e.ctrlKey) openRandomSource();
+    if (e.key === 'o' && !e.metaKey && !e.ctrlKey && current === 'clipreader') {
+      var m = /^#clip\/(.+)$/.exec(location.hash);
+      if (m && window.Clip) window.Clip.get(m[1]).then(function (item) {
+        if (item) window.open(item.url, '_blank', 'noopener');
+      }).catch(function () {});
+    }
     if (e.key >= '1' && e.key <= '4' && current === 'table') {
       var d = $('.detent[data-d="' + e.key + '"]'); if (d) d.click();
     }
