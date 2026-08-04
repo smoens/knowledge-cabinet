@@ -394,18 +394,23 @@
   function stopClock() { if (clock) clearInterval(clock); clock = null; }
 
   /* ── Routing ────────────────────────────────────────────────────────── */
-  var VIEWS = { 'case': renderCase, table: renderTable, catalogue: renderCatalogue, rounds: renderRounds, register: renderRegister };
+  var VIEWS = {
+    'case': renderCase, table: renderTable, catalogue: renderCatalogue, rounds: renderRounds, register: renderRegister,
+    clippings: renderClippings, clipreader: renderClipReader
+  };
   var current = 'case';
 
   function go(view, arg, silent) {
     current = view;
     $$('.view').forEach(function (v) { v.hidden = v.dataset.view !== view; });
     $$('.plate').forEach(function (p) {
-      p.setAttribute('aria-current', p.dataset.view === view || (view === 'table' && p.dataset.view === 'case') ? 'true' : 'false');
+      p.setAttribute('aria-current', p.dataset.view === view ||
+        (view === 'table' && p.dataset.view === 'case') ||
+        (view === 'clipreader' && p.dataset.view === 'clippings') ? 'true' : 'false');
     });
     if (view !== 'table') stopClock();
     VIEWS[view](arg);
-    if (!silent) location.hash = view === 'table' ? '#read/' + arg : '#' + view;
+    if (!silent) location.hash = view === 'table' ? '#read/' + arg : view === 'clipreader' ? '#clip/' + arg : '#' + view;
     window.scrollTo({ top: 0, behavior: REDUCED ? 'auto' : 'smooth' });
     $('#stage').focus({ preventScroll: true });
   }
@@ -415,6 +420,7 @@
       var id = h.slice(5);
       if (CH[id]) return go('table', id, silent);
     }
+    if (h.indexOf('clip/') === 0) return go('clipreader', h.slice(5), silent);
     go(VIEWS[h] ? h : 'case', null, silent);
   }
 
@@ -1167,6 +1173,156 @@
     if (!s) return '0m';
     if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm';
     return (s / 3600).toFixed(1) + 'h';
+  }
+
+  /* ── The clippings tray: raw articles, parsed on demand, never written
+     into content.js. State lives entirely in clippings.js's IndexedDB store
+     — this view is just a drawer front over that API. ─────────────────── */
+  function clipStatusLabel(st) {
+    return { fetching: 'fetching\u2026', unread: 'unread', read: 'read', promoted: 'promoted', error: 'could not fetch' }[st] || st;
+  }
+  function agoMs(ms) { return ms ? ago(new Date(ms).toISOString().slice(0, 10)) : '\u2014'; }
+
+  function renderClippings() {
+    var v = $('#view-clippings');
+    if (!window.Clip) {
+      v.innerHTML = '<div class="room-head"><h1 class="room-title">The <em>clippings</em> tray</h1>' +
+        '<p class="room-lede">This browser could not load the clippings module.</p></div>';
+      return;
+    }
+    v.innerHTML =
+      '<div class="room-head">' +
+        '<h1 class="room-title">The <em>clippings</em> tray</h1>' +
+        '<p class="room-lede">Paste an article and it is fetched and parsed on the spot, then read here at reading width. Nothing here joins the book until you promote it, and this tray lives only in this browser \u2014 not in the collection\u2019s repository.</p>' +
+      '</div>' +
+      '<form class="clip-add" id="clipAdd">' +
+        '<input type="url" id="clipUrl" placeholder="Paste an article URL\u2026" autocomplete="off" required>' +
+        '<button class="btn" type="submit">Fetch and file</button>' +
+      '</form>' +
+      '<div class="clip-list" id="clipList"><p class="empty-note">Loading the tray\u2026</p></div>';
+
+    $('#clipAdd').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var input = $('#clipUrl');
+      var url = input.value.trim();
+      if (!url) return;
+      input.disabled = true;
+      toast('Fetching\u2026');
+      window.Clip.add(url).then(function () {
+        input.value = ''; input.disabled = false;
+        toast('Filed. Parsed and ready to read.');
+        paintClipList();
+      }).catch(function (err) {
+        input.disabled = false;
+        toast(err.message || 'Could not fetch that article.');
+        paintClipList();
+      });
+    });
+
+    paintClipList();
+  }
+
+  function paintClipList() {
+    var host = $('#clipList');
+    if (!host) return;
+    window.Clip.list().then(function (items) {
+      if (!items.length) { host.innerHTML = '<p class="empty-note">Nothing in the tray yet. Paste a URL above.</p>'; return; }
+      host.innerHTML = items.map(function (it) {
+        return '<div class="clip-row" data-id="' + it.id + '">' +
+          '<div class="clip-main">' +
+            '<span class="clip-chip cs-' + it.status + '">' + clipStatusLabel(it.status) + '</span>' +
+            '<button class="clip-title" data-act="open"' + (it.status === 'fetching' ? ' disabled' : '') + '>' + esc(it.title || it.url) + '</button>' +
+            '<span class="clip-host">' + esc(it.host || '') + (it.words ? ' \u00b7 ' + plural(Math.max(1, Math.round(it.words / 200)), 'min') + ' read' : '') + ' \u00b7 ' + agoMs(it.addedAt) + '</span>' +
+            (it.status === 'error' ? '<p class="clip-err">' + esc(it.error || '') + '</p>' : '') +
+            (it.excerpt ? '<p class="clip-excerpt">' + esc(it.excerpt) + '\u2026</p>' : '') +
+          '</div>' +
+          '<div class="clip-acts">' +
+            '<a class="mini" href="' + esc(it.url) + '" target="_blank" rel="noopener">Open original</a>' +
+            (it.status === 'error' ? '<button class="mini" data-act="retry">Retry</button>' : '') +
+            (it.status === 'unread' || it.status === 'read' ? '<button class="mini" data-act="promote">Promote to chapter</button>' : '') +
+            '<button class="mini" data-act="discard">Discard</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      $$('.clip-row', host).forEach(function (row) {
+        var id = row.dataset.id;
+        var titleBtn = $('.clip-title', row);
+        if (titleBtn) titleBtn.addEventListener('click', function () { go('clipreader', id); });
+        var retryBtn = $('[data-act="retry"]', row);
+        if (retryBtn) retryBtn.addEventListener('click', function () {
+          toast('Retrying\u2026');
+          window.Clip.retry(id).then(function () { toast('Fetched.'); paintClipList(); })
+            .catch(function (err) { toast(err.message || 'Still could not fetch it.'); paintClipList(); });
+        });
+        var promoteBtn = $('[data-act="promote"]', row);
+        if (promoteBtn) promoteBtn.addEventListener('click', function () {
+          window.Clip.get(id).then(function (item) {
+            var text = window.Clip.handoff(item);
+            var finish = function () {
+              window.Clip.promote(id).then(function () {
+                toast('Handoff copied \u2014 paste it into a session to draft the chapter.');
+                paintClipList();
+              });
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(finish, finish);
+            else finish();
+          });
+        });
+        var discardBtn = $('[data-act="discard"]', row);
+        if (discardBtn) discardBtn.addEventListener('click', function () {
+          if (!confirm('Remove this clipping from the tray?')) return;
+          window.Clip.remove(id).then(function () { toast('Discarded.'); paintClipList(); });
+        });
+      });
+    }).catch(function (err) {
+      host.innerHTML = '<p class="empty-note">Could not open the clippings tray. ' + esc(err.message || '') + '</p>';
+    });
+  }
+
+  function clipLabelHTML(item) {
+    var rows = [
+      ['Source', item.host || '\u2014'],
+      ['Fetched', agoMs(item.addedAt)],
+      ['Length', item.words ? plural(Math.max(1, Math.round(item.words / 200)), 'min') + ' read' : '\u2014'],
+      ['Status', clipStatusLabel(item.status)]
+    ];
+    return '<div class="lc-top"><div><span class="lc-area">Clipping</span>' +
+        '<p class="lc-title">' + esc(item.title) + '</p></div></div>' +
+      '<p class="lc-rows">' + rows.map(function (p) { return esc(p[0]) + ' <b>' + esc(p[1]) + '</b>'; }).join(' <i>\u00b7</i> ') + '</p>' +
+      '<a class="btn" href="' + esc(item.url) + '" target="_blank" rel="noopener" style="display:inline-block;margin-top:.8rem">Open original \u2197</a>';
+  }
+
+  function renderClipReader(id) {
+    var v = $('#view-clipreader');
+    v.innerHTML = '<div class="table-wrap"><div class="empty"><h3>Bringing it to the table</h3><p>One moment.</p></div></div>';
+    if (!window.Clip) return;
+    window.Clip.get(id).then(function (item) {
+      if (current !== 'clipreader' || location.hash !== '#clip/' + id) return;
+      if (!item) {
+        v.innerHTML = '<div class="table-wrap"><div class="empty"><h3>That clipping is gone</h3><p>It may already have been discarded.</p></div></div>';
+        return;
+      }
+      if (item.status === 'unread') window.Clip.markRead(id).then(function () {}).catch(function () {});
+      v.innerHTML =
+        '<div class="table-wrap">' +
+          '<button class="table-back">' + icon('i-back') + 'Back to the tray</button>' +
+          '<div class="table">' +
+            '<aside class="labelcard">' + clipLabelHTML(item) + '</aside>' +
+            '<article class="reading">' +
+              '<h1>' + esc(item.title) + '</h1>' +
+              '<p class="summary">' + esc(item.host) + (item.published ? ' \u00b7 ' + esc(item.published.slice(0, 10)) : '') + (item.note ? '<br>' + esc(item.note) : '') + '</p>' +
+              (item.status === 'error'
+                ? '<p class="blk">This clipping could not be fetched: ' + esc(item.error || '') + '</p>'
+                : window.Clip.render(item.markdown)) +
+            '</article>' +
+          '</div>' +
+        '</div>';
+      $('.table-back', v).addEventListener('click', function () { go('clippings'); });
+    }).catch(function (err) {
+      if (current !== 'clipreader') return;
+      v.innerHTML = '<div class="table-wrap"><div class="empty"><h3>Could not open that clipping</h3><p>' + esc(err.message || '') + '</p></div></div>';
+    });
   }
 
   /* ── The catalogue slip ─────────────────────────────────────────────── */

@@ -112,6 +112,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       <button class="plate" data-view="case" aria-current="true">Cabinet</button>
       <button class="plate" data-view="catalogue">Catalogue</button>
       <button class="plate" data-view="rounds">Rounds<span class="plate-count" id="dueBadge" hidden></span></button>
+      <button class="plate" data-view="clippings">Clippings</button>
       <button class="plate" data-view="register">Register</button>
     </nav>
     <div class="rail-tools">
@@ -129,6 +130,8 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <section class="view" id="view-table" data-view="table" hidden></section>
     <section class="view" id="view-catalogue" data-view="catalogue" hidden></section>
     <section class="view" id="view-rounds" data-view="rounds" hidden></section>
+    <section class="view" id="view-clippings" data-view="clippings" hidden></section>
+    <section class="view" id="view-clipreader" data-view="clipreader" hidden></section>
     <section class="view" id="view-register" data-view="register" hidden></section>
   </main>
 </div>
@@ -145,6 +148,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 <script src="content.js" defer></script>
 <script src="figures.js" defer></script>
+<script src="clippings.js" defer></script>
 <script src="app.js" defer></script>
 <script>
 /* Offline shell. Service workers need a secure context, so this is a no-op on
