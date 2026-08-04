@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Knowledge Cabinet — Product Map</title>
+<meta name="description" content="A working map of Knowledge Cabinet: vision, product capabilities, features, user stories, the build lens, and a capture inbox." />
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="product-map.css" />
+</head>
+<body>
+<header class="pm-header">
+  <div class="pm-header-row">
+    <h1>Product map</h1>
+    <p class="pm-tagline" id="pm-tagline"></p>
+  </div>
+  <nav class="pm-tabs" role="tablist">
+    <button class="pm-tab is-active" data-tab="product" role="tab" aria-selected="true">Product</button>
+    <button class="pm-tab" data-tab="build" role="tab" aria-selected="false">Build</button>
+    <button class="pm-tab" data-tab="inbox" role="tab" aria-selected="false">Inbox</button>
+    <button class="pm-tab" data-tab="glossary" role="tab" aria-selected="false">Glossary</button>
+  </nav>
+</header>
+
+<main>
+  <section class="pm-vision" id="pm-vision"></section>
+
+  <section class="pm-panel is-active" id="panel-product" data-panel="product">
+    <p class="pm-lens-note">What the product does, grouped by capability — not by which file implements it. Each feature is tagged with the file(s) it touches, and a dot for whether it came from a deliberate user story or something bumped into along the way.</p>
+    <div class="pm-grid" id="pm-product-grid"></div>
+  </section>
+
+  <section class="pm-panel" id="panel-build" data-panel="build">
+    <p class="pm-lens-note">The process and dev-ops side: how this repo actually gets worked on. Grounded in real files — gaps are flagged honestly, not invented.</p>
+    <div class="pm-grid pm-grid-build" id="pm-build-grid"></div>
+  </section>
+
+  <section class="pm-panel" id="panel-inbox" data-panel="inbox">
+    <p class="pm-lens-note">Drop a raw idea here — no need to decide yet whether it's a feature, a feature group, or a user story. Triage it into a capability whenever you're ready, or discard it.</p>
+    <form class="pm-capture" id="pm-capture-form">
+      <textarea id="pm-capture-text" placeholder="What did you bump into, or wish the cabinet could do?" rows="2" required></textarea>
+      <button type="submit">Capture</button>
+    </form>
+    <div class="pm-inbox-list" id="pm-inbox-list"></div>
+  </section>
+
+  <section class="pm-panel" id="panel-glossary" data-panel="glossary">
+    <p class="pm-lens-note">Jargon used across this product map and the reading app itself.</p>
+    <dl class="pm-glossary" id="pm-glossary-list"></dl>
+  </section>
+</main>
+
+<div class="pm-toast" id="pm-toast" aria-live="polite"></div>
+
+<script src="product-map-data.js" defer></script>
+<script src="product-map.js" defer></script>
+</body>
+</html>

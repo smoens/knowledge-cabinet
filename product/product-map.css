@@ -1,0 +1,316 @@
+/* Product map — a backstage tool, not a reading surface.
+   Loosely echoes the cabinet's own walnut/brass/baize palette (see
+   ../cabinet.css and ../DESIGN.md) so it doesn't feel foreign when reached
+   from the same site, but stays visually distinct: this is a product-owner's
+   workbench, not the book. */
+:root {
+  --cab: #221a13;
+  --cab-deep: #17110c;
+  --cab-edge: #4a3a29;
+  --baize: #2f4c3c;
+  --baize-lit: #3f6853;
+  --brass: #c9962f;
+  --brass-lit: #edc264;
+  --brass-dim: #8a6a2a;
+  --ivory: #f4ece0;
+  --ink: #241d14;
+  --on-cab: #ece0cb;
+  --ok: #4c8f6a;
+  --warn: #c9962f;
+  --undef: #8a6a5a;
+  --sans: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--cab-deep);
+  color: var(--on-cab);
+  font-family: var(--sans);
+  line-height: 1.5;
+}
+
+.pm-header {
+  background: var(--cab);
+  border-bottom: 1px solid var(--cab-edge);
+  padding: 1.25rem clamp(1rem, 4vw, 3rem) 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.pm-header-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pm-header h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+  color: var(--brass-lit);
+}
+
+.pm-tagline {
+  margin: 0;
+  color: var(--on-cab);
+  opacity: 0.75;
+  font-style: italic;
+}
+
+.pm-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 1rem;
+}
+
+.pm-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--on-cab);
+  opacity: 0.6;
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+}
+
+.pm-tab:hover { opacity: 0.85; }
+
+.pm-tab.is-active {
+  opacity: 1;
+  border-bottom-color: var(--brass);
+  color: var(--brass-lit);
+}
+
+main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem clamp(1rem, 4vw, 3rem) 4rem;
+}
+
+.pm-vision {
+  background: var(--baize);
+  border: 1px solid var(--baize-lit);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.pm-vision h2 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--on-cab);
+  opacity: 0.75;
+}
+
+.pm-vision ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.pm-vision li { margin: 0.15rem 0; }
+
+.pm-lens-note {
+  opacity: 0.75;
+  font-size: 0.92rem;
+  max-width: 52rem;
+  margin: 0 0 1.25rem;
+}
+
+.pm-panel { display: none; }
+.pm-panel.is-active { display: block; }
+
+.pm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 1rem;
+}
+
+.pm-card {
+  background: var(--ink);
+  border: 1px solid var(--cab-edge);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+}
+
+.pm-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.02rem;
+  color: var(--brass-lit);
+}
+
+.pm-card .pm-desc {
+  margin: 0 0 0.5rem;
+  opacity: 0.85;
+  font-size: 0.92rem;
+}
+
+.pm-touches {
+  font-size: 0.78rem;
+  font-family: var(--mono);
+  opacity: 0.55;
+  margin: 0 0 0.6rem;
+}
+
+.pm-feature-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pm-feature-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.pm-origin-dot {
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  margin-top: 0.35em;
+}
+
+.pm-origin-dot.story { background: var(--ok); }
+.pm-origin-dot.idea { background: #8a8478; }
+
+.pm-feature-name { font-weight: 600; }
+.pm-feature-desc { opacity: 0.7; }
+
+.pm-status-pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  margin-bottom: 0.5rem;
+}
+
+.pm-status-pill.built { background: rgba(76,143,106,0.2); color: var(--ok); }
+.pm-status-pill.undefined { background: rgba(138,106,90,0.25); color: var(--undef); }
+.pm-status-pill.informal { background: rgba(201,150,47,0.2); color: var(--warn); }
+.pm-status-pill.backlog { background: rgba(201,150,47,0.15); color: var(--warn); border: 1px dashed var(--warn); }
+
+.pm-card ul.pm-details {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.pm-capture {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.pm-capture textarea {
+  flex: 1;
+  resize: vertical;
+  background: var(--ink);
+  border: 1px solid var(--cab-edge);
+  color: var(--on-cab);
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+}
+
+.pm-capture button,
+.pm-inbox-item button {
+  background: var(--brass);
+  color: var(--cab-deep);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pm-inbox-item button.pm-discard {
+  background: transparent;
+  color: var(--on-cab);
+  opacity: 0.7;
+  border: 1px solid var(--cab-edge);
+  font-weight: 400;
+}
+
+.pm-inbox-item {
+  background: var(--ink);
+  border: 1px solid var(--cab-edge);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.pm-inbox-item.is-triaged { opacity: 0.5; }
+
+.pm-inbox-item .pm-text { margin: 0 0 0.4rem; }
+
+.pm-inbox-item .pm-meta {
+  font-size: 0.78rem;
+  opacity: 0.6;
+  margin: 0 0 0.5rem;
+}
+
+.pm-inbox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pm-inbox-actions select {
+  background: var(--cab);
+  color: var(--on-cab);
+  border: 1px solid var(--cab-edge);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font: inherit;
+}
+
+.pm-empty {
+  opacity: 0.55;
+  font-style: italic;
+}
+
+.pm-glossary dt {
+  font-weight: 600;
+  color: var(--brass-lit);
+  margin-top: 0.8rem;
+}
+
+.pm-glossary dd {
+  margin: 0.2rem 0 0;
+  opacity: 0.85;
+}
+
+.pm-toast {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--brass);
+  color: var(--cab-deep);
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: transform 0.25s ease;
+  z-index: 10;
+}
+
+.pm-toast.is-visible { transform: translateX(-50%) translateY(0); }
