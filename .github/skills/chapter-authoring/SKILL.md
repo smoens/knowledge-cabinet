@@ -36,7 +36,7 @@ Failure modes: a chapter whose depth-1 blocks are an introduction rather than th
 
 ## 4. Name every idea, then catalogue it
 
-Every idea the chapter leans on gets a `concepts[]` entry and at least one inline `[[id]]` mention.
+Every idea the chapter leans on gets a compact `concepts[]` entry in `content.js`, a full entry in `content/concepts/<area>.js`, and at least one inline `[[id]]` mention in its chapter body.
 
 For each concept write:
 
@@ -61,9 +61,9 @@ At least one `prompt` block, ideally one per depth from 2 onward. A good prompt 
 ## 7. Verify
 
 ```
-node --check content.js
-node --check figures.js
-node --check app.js
+node .github/scripts/check-content.mjs
+find content figures -name '*.js' -print0 | xargs -0 -n1 node --check
+node --check content.js && node --check figures.js && node --check app.js && node --check sw.js
 ```
 
 Then open `index.html` and check:

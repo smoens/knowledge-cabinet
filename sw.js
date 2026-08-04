@@ -1,8 +1,10 @@
 /* Knowledge Cabinet — offline shell.
-   Cache-first for the shell so the book opens on a plane, on a train, and on
-   an iPad with no signal. Bump SHELL when any shell file changes: the old
-   cache is dropped wholesale on activate, so there is no partial-update state. */
-var SHELL = 'cabinet-shell-v7';
+   The small startup shell is installed eagerly; chapter, figure and font
+   resources join a runtime cache only when a reader uses them. Bump SHELL for
+   each shell release. CONTENT stays stable so read drawers survive updates;
+   bump it only when the runtime chunk schema changes incompatibly. */
+var SHELL = 'cabinet-shell-v10';
+var CONTENT = 'cabinet-content-v1';
 
 var FILES = [
   './',
@@ -19,6 +21,7 @@ var FILES = [
   './icons/icon-512.png',
   './icons/apple-touch-icon.png'
 ];
+var SHELL_URLS = FILES.map(function (file) { return new URL(file, self.registration.scope).href; });
 
 self.addEventListener('install', function (e) {
   e.waitUntil(
@@ -32,7 +35,10 @@ self.addEventListener('activate', function (e) {
   e.waitUntil(
     caches.keys()
       .then(function (keys) {
-        return Promise.all(keys.filter(function (k) { return k !== SHELL; })
+        return Promise.all(keys.filter(function (k) {
+          return (k.indexOf('cabinet-shell-') === 0 && k !== SHELL) ||
+            (k.indexOf('cabinet-content-') === 0 && k !== CONTENT);
+        })
           .map(function (k) { return caches.delete(k); }));
       })
       .then(function () { return self.clients.claim(); })
@@ -45,26 +51,28 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  e.respondWith(
-    caches.match(req, { ignoreSearch: true }).then(function (hit) {
+  var cacheName = SHELL_URLS.indexOf(req.url) >= 0 ? SHELL : CONTENT;
+  e.respondWith(caches.open(cacheName).then(function (cache) {
+    return cache.match(req).then(function (hit) {
+      var update = fetch(req).then(function (fresh) {
+        if (!fresh || !fresh.ok || fresh.type !== 'basic') return fresh;
+        return cache.put(req, fresh.clone()).then(function () { return fresh; });
+      });
       if (hit) {
         /* Refresh in the background so the next open is current. */
-        fetch(req).then(function (fresh) {
-          if (fresh && fresh.ok) caches.open(SHELL).then(function (c) { c.put(req, fresh); });
-        }).catch(function () {});
+        e.waitUntil(update.catch(function (err) {
+          console.warn('Knowledge Cabinet cache refresh failed for ' + req.url, err);
+        }));
         return hit;
       }
-      return fetch(req).then(function (fresh) {
-        if (fresh && fresh.ok && fresh.type === 'basic') {
-          var copy = fresh.clone();
-          caches.open(SHELL).then(function (c) { c.put(req, copy); });
-        }
-        return fresh;
-      }).catch(function () {
-        /* A navigation with no network falls back to the shell. */
-        if (req.mode === 'navigate') return caches.match('./index.html');
-        return Response.error();
-      });
-    })
-  );
+      return update;
+    });
+  }).catch(function (err) {
+    console.warn('Knowledge Cabinet request failed for ' + req.url, err);
+    /* A navigation with no network falls back to the shell. */
+    if (req.mode === 'navigate') return caches.open(SHELL).then(function (cache) {
+      return cache.match('./index.html');
+    });
+    return Response.error();
+  }));
 });

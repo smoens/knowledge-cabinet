@@ -25,6 +25,7 @@ jobs:
           node --check content.js
           node --check figures.js
           node --check sw.js
+          find content figures -name '*.js' -print0 | xargs -0 -n1 node --check
 
       - name: Check the content model holds together
         run: node .github/scripts/check-content.mjs

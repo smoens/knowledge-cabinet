@@ -171,29 +171,13 @@
   var REF = /\[\[([a-z0-9-]+)(?:\|([^\]]+))?\]\]/g;
   var mentions = {};   // conceptId -> [chapterId]
   var chapterOf = {};  // chapterId -> [conceptId]
-  var freq = {};
+  var freq = BOOK.frequency || {};
 
   BOOK.chapters.forEach(function (ch) {
-    var seen = {};
-    function scan(text) {
-      var m;
-      REF.lastIndex = 0;
-      while ((m = REF.exec(text))) {
-        var id = m[1];
-        if (!C[id]) continue;
-        freq[id] = (freq[id] || 0) + 1;
-        if (!seen[id]) { seen[id] = 1; (mentions[id] = mentions[id] || []).push(ch.id); }
-      }
-    }
-    scan(ch.summary || '');
-    ch.blocks.forEach(function (b) {
-      scan((b.x || '') + ' ' + (b.items || []).join(' ') + ' ' + (b.q || '') + ' ' + (b.a || ''));
-      if (b.concept && C[b.concept]) {
-        freq[b.concept] = (freq[b.concept] || 0) + 1;
-        if (!seen[b.concept]) { seen[b.concept] = 1; (mentions[b.concept] = mentions[b.concept] || []).push(ch.id); }
-      }
+    chapterOf[ch.id] = (ch.concepts || []).slice();
+    chapterOf[ch.id].forEach(function (id) {
+      if (C[id]) (mentions[id] = mentions[id] || []).push(ch.id);
     });
-    chapterOf[ch.id] = Object.keys(seen);
   });
 
   var degree = {};
@@ -259,6 +243,64 @@
     toast._t = setTimeout(function () { t.hidden = true; }, 2400);
   }
 
+  /* Chunks use ordinary script tags so deferred reading also works from file://. */
+  var scriptLoads = {};
+  var pendingSlipId = null;
+
+  function loadScript(src) {
+    if (scriptLoads[src]) return scriptLoads[src];
+    scriptLoads[src] = new Promise(function (resolve, reject) {
+      var script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.onload = function () { resolve(); };
+      script.onerror = function () { reject(new Error('Could not load ' + src)); };
+      document.head.appendChild(script);
+    }).catch(function (err) {
+      delete scriptLoads[src];
+      throw err;
+    });
+    return scriptLoads[src];
+  }
+
+  function ensureChapter(ch) {
+    if (ch.blocks) return Promise.resolve(ch);
+    return loadScript(ch.chunk).then(function () {
+      var body = window.CABINET_CHAPTERS && window.CABINET_CHAPTERS[ch.id];
+      if (!body || !body.blocks) throw new Error('Chapter data is missing for ' + ch.id);
+      ch.blocks = body.blocks;
+      ch.sources = body.sources || [];
+      return ch;
+    });
+  }
+
+  function hasConceptDetails(c) {
+    return !!(c && c.fundamental && c.mechanism);
+  }
+
+  function ensureConceptDetails(c) {
+    if (hasConceptDetails(c)) return Promise.resolve();
+    var src = BOOK.conceptDetailChunks && BOOK.conceptDetailChunks[c.area];
+    if (!src) return Promise.reject(new Error('Catalogue detail is missing for ' + c.area + '.'));
+    return loadScript(src).then(function () {
+      var details = window.CABINET_CONCEPT_DETAILS;
+      if (!details) throw new Error('Catalogue detail is missing.');
+      Object.keys(details).forEach(function (id) {
+        if (C[id]) Object.assign(C[id], details[id]);
+      });
+      if (!hasConceptDetails(c)) throw new Error('Catalogue detail is missing for ' + c.term + '.');
+    });
+  }
+
+  function ensureFigure(id) {
+    var figures = window.LB || (window.LB = {});
+    if (figures[id]) return Promise.resolve(figures[id]);
+    return loadScript('figures/' + id + '.js').then(function () {
+      if (!figures[id]) throw new Error('Figure renderer is missing for ' + id);
+      return figures[id];
+    });
+  }
+
   /* Turn [[concept]] markup into buttons whose weight encodes importance. */
   function rich(s) {
     var outHtml = '', last = 0, m;
@@ -280,7 +322,9 @@
   function progress(chId) {
     var ch = CH[chId], r = S.read[chId];
     if (!ch || !r) return 0;
-    var total = ch.blocks.filter(function (b) { return b.d <= 3; }).length || 1;
+    var total = ch.workingBlockCount || (ch.blocks
+      ? ch.blocks.filter(function (b) { return b.d <= 3; }).length
+      : 0) || 1;
     return Math.min(1, Object.keys(r.blocks || {}).length / total);
   }
   function touch(chId) {
@@ -542,6 +586,20 @@
   function renderTable(chId) {
     var ch = CH[chId];
     if (!ch) return go('case');
+    if (!ch.blocks) {
+      $('#view-table').innerHTML =
+        '<div class="table-wrap"><div class="empty"><h3>Preparing the drawer</h3>' +
+        '<p>Its pages are being brought to the table.</p></div></div>';
+      ensureChapter(ch).then(function () {
+        if (current === 'table' && location.hash === '#read/' + chId) renderTable(chId);
+      }).catch(function (err) {
+        if (current !== 'table' || location.hash !== '#read/' + chId) return;
+        $('#view-table').innerHTML =
+          '<div class="table-wrap"><div class="empty"><h3>That drawer could not be opened</h3>' +
+          '<p>' + esc(err.message) + '</p></div></div>';
+      });
+      return;
+    }
     S.lastOpen = chId; touch(chId); save();
     startClock(chId);
 
@@ -664,8 +722,11 @@
 
     // Figures
     $$('[data-fig]', host).forEach(function (m) {
-      var fn = window.LB[m.dataset.fig];
-      if (fn) fn(m); else m.textContent = 'Figure unavailable.';
+      ensureFigure(m.dataset.fig).then(function (fn) {
+        if (host.contains(m)) fn(m);
+      }).catch(function (err) {
+        if (host.contains(m)) m.textContent = 'Figure unavailable: ' + err.message;
+      });
     });
 
     // Prompts
@@ -1154,6 +1215,32 @@
       };
     }
     if (!c) return;
+    if (!c.provisional && !hasConceptDetails(c)) {
+      pendingSlipId = id;
+      slip.innerHTML = '<div class="slip-in"><div class="slip-top"><span class="eng">Catalogue entry</span>' +
+        '<button class="slip-close" aria-label="Close">' + icon('i-close') + '</button></div>' +
+        '<div class="slip-card" style="--t:' + ink(c.area, true) + '"><p class="slip-short">Opening the specimen card.</p></div></div>';
+      if (slip.hidden) slipOpener = document.activeElement;
+      slipC = c;
+      slip.hidden = false; veil.hidden = false;
+      document.addEventListener('keydown', escClose);
+      $('.slip-close', slip).focus();
+      ensureConceptDetails(c).then(function () {
+        if (pendingSlipId === id) {
+          pendingSlipId = null;
+          openSlip(id);
+        }
+      }).catch(function (err) {
+        if (pendingSlipId !== id) return;
+        pendingSlipId = null;
+        slip.innerHTML = '<div class="slip-in"><div class="slip-top"><span class="eng">Catalogue entry</span>' +
+          '<button class="slip-close" aria-label="Close">' + icon('i-close') + '</button></div>' +
+          '<div class="slip-card" style="--t:' + ink(c.area, true) + '"><p class="slip-short">' +
+          esc(err.message) + '</p></div></div>';
+        $('.slip-close', slip).focus();
+      });
+      return;
+    }
     meet(c.id);
 
     var where = (mentions[c.id] || []).map(function (chId) { return CH[chId]; }).filter(Boolean);
@@ -1204,6 +1291,7 @@
   function closeSlip() {
     $('#slip').hidden = true; $('#slipVeil').hidden = true;
     document.removeEventListener('keydown', escClose);
+    pendingSlipId = null;
     slipC = null;
     if (slipOpener && document.contains(slipOpener) && slipOpener.offsetParent !== null) slipOpener.focus();
     slipOpener = null;
