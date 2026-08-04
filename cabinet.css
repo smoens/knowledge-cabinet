@@ -279,6 +279,10 @@ button.bay:hover .bay-act { color: #f6d894; }
 .k-strike { background: none !important; border-top: 1px solid rgba(201,143,134,.85); height: 0 !important; margin-top: .68rem !important; }
 .k-plate  { background: none !important; box-shadow: inset 0 0 0 1.5px var(--a-tech); border-radius: 50% !important; height: 12px !important; width: 12px; margin: .38rem auto 0 !important; }
 
+/* The archive: retired drawers, taken off the wall but not thrown out */
+.key.archive { margin-top: 1.6rem; padding-top: 1.1rem; border-top: 1px solid rgba(201,150,47,.16); }
+.archive-wall { padding-top: .7rem; opacity: .92; }
+
 .wall {
   max-width: 1320px; margin: 0 auto;
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 clamp(.6rem, 1.4vw, 1.1rem);
@@ -750,6 +754,27 @@ button.bay:hover .bay-act { color: #f6d894; }
 .prov-foot { margin: .9rem 0 0; font: 400 .78rem/1.6 var(--read); color: var(--ink-3); }
 
 .table-foot { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: 2.4rem; }
+
+/* Retire control: tucked under a closed summary so it doesn't compete with
+   the everyday reading actions above it. */
+.retire { width: 100%; margin-top: .3rem; }
+.retire summary {
+  display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; width: fit-content;
+  padding: .35rem .1rem;
+  font: 500 .68rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-3);
+  transition: color .18s var(--e-out);
+}
+.retire summary:hover { color: var(--ink); }
+.retire summary::-webkit-details-marker { display: none; }
+.retire-body { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding-top: .7rem; }
+.retire-label { display: flex; align-items: center; gap: .5rem; font: 500 .78rem/1 var(--sans); color: var(--ink-2); }
+.retire-label select {
+  appearance: none; padding: .4rem .6rem; border-radius: 3px;
+  border: 1px solid var(--ivory-3); background: var(--ivory); color: var(--ink);
+  font: 400 .82rem/1 var(--sans);
+}
+.retire-note { flex-basis: 100%; margin: .3rem 0 0; font: 400 .78rem/1.55 var(--read); color: var(--ink-3); }
 
 /* ── 6. Catalogue ──────────────────────────────────────────────────────── */
 .cat-controls {

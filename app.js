@@ -17,6 +17,14 @@
   var SYNC = { owner: 'smoens', repo: 'knowledge-cabinet', branch: 'data', path: 'data/record.json' };
   var TOKEN_KEY = 'livingbook.token';
 
+  /* Content writes: retiring a chapter edits content.js itself, on the
+     publishing branch — not the reading-record branch above. Same token,
+     same Contents API, different target, because this changes what every
+     reader sees rather than one device's private progress. */
+  var CONTENT = { owner: SYNC.owner, repo: SYNC.repo, branch: 'main', path: 'content.js' };
+  function b64FromText(s) { return btoa(unescape(encodeURIComponent(s))); }
+  function textFromB64(s) { return decodeURIComponent(escape(atob(s))); }
+
   var EXTENT = [
     null,
     { name: 'Spine', note: 'The claim and nothing else.' },
@@ -30,7 +38,7 @@
 
   function blank() {
     return {
-      extent: 3, lamp: 0, focus: [], enc: 'size', sort: 'mag', kind: 'all', key: true,
+      extent: 3, lamp: 0, focus: [], enc: 'size', sort: 'mag', kind: 'all', key: true, archived: false,
       read: {}, met: {}, cards: {}, days: {}, log: [], provisional: {}, lastOpen: null, updatedAt: 0
     };
   }
@@ -130,6 +138,60 @@
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
       syncNote('ok');
     }).catch(function () { syncNote('error'); });
+  }
+
+  /* Retire a chapter: edits content.js in place — read the file, patch just
+     the one chapter's state and supersededBy, commit it back. content.js is
+     hand-authored JSON wrapped in `window.BOOK = ...;`, so the whole object
+     is parsed and re-serialized rather than string-patched field by field;
+     that keeps the rest of the file (and every other chapter) untouched
+     apart from formatting. Concepts, frequency, and the chapter's own body
+     chunk are never touched — this only ever flips two fields. */
+  function retireChapter(chId, supersededId) {
+    var token = getToken();
+    if (!token) return Promise.reject(new Error('Connect a sync token in the Register first.'));
+    var api = 'https://api.github.com/repos/' + CONTENT.owner + '/' + CONTENT.repo + '/contents/' + CONTENT.path;
+    var authHeaders = { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json' };
+    return fetch(api + '?ref=' + CONTENT.branch, { headers: authHeaders })
+      .then(function (r) { if (!r.ok) throw new Error('Could not read content.js (status ' + r.status + ').'); return r.json(); })
+      .then(function (info) {
+        var text = textFromB64(info.content.replace(/\n/g, ''));
+        var marker = 'window.BOOK = ';
+        var start = text.indexOf(marker);
+        var jsonStart = start + marker.length;
+        var closeAt = text.lastIndexOf('};');
+        if (start < 0 || closeAt < jsonStart) throw new Error('Could not locate window.BOOK in content.js — aborted.');
+        var jsonEnd = closeAt + 1;
+        var book;
+        try { book = JSON.parse(text.slice(jsonStart, jsonEnd)); }
+        catch (e) { throw new Error('content.js did not parse cleanly — aborted rather than risk corrupting it.'); }
+        var chapter = book.chapters.filter(function (c) { return c.id === chId; })[0];
+        if (!chapter) throw new Error('Chapter "' + chId + '" not found in content.js.');
+        if (!book.chapters.some(function (c) { return c.id === supersededId; })) throw new Error('Superseding chapter not found.');
+        chapter.state = 'retiring';
+        chapter.supersededBy = supersededId;
+        chapter.revised = TODAY;
+        var newText = text.slice(0, jsonStart) + JSON.stringify(book, null, 2) + text.slice(jsonEnd);
+        var body = {
+          message: 'Retire "' + chapter.title + '", superseded by ' + supersededId,
+          branch: CONTENT.branch,
+          sha: info.sha,
+          content: b64FromText(newText)
+        };
+        return fetch(api, {
+          method: 'PUT',
+          headers: { Authorization: authHeaders.Authorization, Accept: authHeaders.Accept, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+      })
+      .then(function (r) {
+        if (!r.ok) return r.json().catch(function () { return {}; }).then(function (e) { throw new Error(e.message || ('Commit failed (status ' + r.status + ')')); });
+        return r.json();
+      })
+      .then(function () {
+        // Reflect it in the running app immediately, without waiting for a reload.
+        if (CH[chId]) { CH[chId].state = 'retiring'; CH[chId].supersededBy = supersededId; CH[chId].revised = TODAY; }
+      });
   }
 
   /* Manual export/import stays as a portable backup alongside the automatic
@@ -473,15 +535,16 @@
     var lastPct = last ? Math.round(progress(last.id) * 100) : 0;
 
     var focus = S.focus.length ? S.focus : BOOK.areas.map(function (a) { return a.id; });
-    var shown = BOOK.chapters.filter(function (c) { return focus.indexOf(c.area) >= 0; });
+    var inFocus = BOOK.chapters.filter(function (c) { return focus.indexOf(c.area) >= 0; });
+    var shown = inFocus.filter(function (c) { return c.state !== 'retiring'; });
+    var retired = inFocus.filter(function (c) { return c.state === 'retiring'; });
 
-    var cols = [[], [], []], i;
     var order = shown.slice().sort(function (a, b) {
-      var w = { 'new': 0, evolving: 1, live: 2, retiring: 3 };
+      var w = { 'new': 0, evolving: 1, live: 2 };
       if (w[a.state] !== w[b.state]) return w[a.state] - w[b.state];
       return (b.revised || b.added).localeCompare(a.revised || a.added);
     });
-    order.forEach(function (ch, n) { cols[n % 3].push(ch); });
+    var cols = threeCols(order);
 
     var html = '' +
       '<div class="room-head">' +
@@ -525,13 +588,14 @@
           '<span><i class="k-depth"></i>Drawer depth is reading length — deeper drawer, longer chapter.</span>' +
           '<span><i class="k-baize"></i>A green baize seam down the left means the drawer stands ajar: new, or revised since you last looked.</span>' +
           '<span><i class="k-read"></i>The brass line along the bottom is how far through it you already are.</span>' +
-          '<span><i class="k-strike"></i>A struck-through title is retiring — superseded, kept only until you have read its replacement.</span>' +
+          '<span><i class="k-strike"></i>A struck-through title is retiring — superseded, kept in the archive below until you have read its replacement.</span>' +
           '<span><i class="k-plate"></i>The engraved plate is the growth area. The code beside it is its accession number.</span>' +
         '</div>' +
       '</details>' +
       '<div class="wall">' + cols.map(function (col) {
         return '<div class="stack">' + col.map(drawerHTML).join('') + '</div>';
-      }).join('') + '</div>';
+      }).join('') + '</div>' +
+      (retired.length ? archiveHTML(retired) : '');
 
     var v = $('#view-case');
     v.innerHTML = html;
@@ -546,6 +610,8 @@
     wireAreaChips(v, renderCase);
     var keyEl = $('details.key', v);
     if (keyEl) keyEl.addEventListener('toggle', function () { S.key = keyEl.open; save(); });
+    var archiveEl = $('details.archive', v);
+    if (archiveEl) archiveEl.addEventListener('toggle', function () { S.archived = archiveEl.open; save(); });
     $$('.drawer', v).forEach(function (d) {
       d.addEventListener('click', function () { go('table', d.dataset.ch); });
     });
@@ -588,6 +654,14 @@
     });
   }
 
+  /* Same three-column deal as the main wall, so a small archive doesn't
+     collapse into one lonely stack. */
+  function threeCols(list) {
+    var cols = [[], [], []];
+    list.forEach(function (ch, n) { cols[n % 3].push(ch); });
+    return cols;
+  }
+
   function drawerHTML(ch) {
     var depth = ch.minutes >= 11 ? 'deep' : ch.minutes <= 6 ? 'shallow' : '';
     var ajar = (ch.state === 'new' || ch.state === 'evolving') ? ' open-ajar' : '';
@@ -611,6 +685,20 @@
       '</span>' +
       '<span class="drawer-read" style="--read-frac:' + p.toFixed(3) + '"></span>' +
     '</button>';
+  }
+
+  /* Retired drawers: taken off the live wall, kept in a closed compartment.
+     Nothing is deleted — the chapter file, its concepts and its state stay
+     exactly as authored; this only removes it from the browsing surface. */
+  function archiveHTML(retired) {
+    var order = retired.slice().sort(function (a, b) { return (b.revised || b.added).localeCompare(a.revised || a.added); });
+    var cols = threeCols(order);
+    return '<details class="key archive"' + (S.archived ? ' open' : '') + '>' +
+      '<summary>' + icon('i-tag', 'ic') + plural(retired.length, 'drawer') + ' retired — set aside, not deleted</summary>' +
+      '<div class="wall archive-wall">' + cols.map(function (col) {
+        return '<div class="stack">' + col.map(drawerHTML).join('') + '</div>';
+      }).join('') + '</div>' +
+    '</details>';
   }
 
   function openRandom() {
@@ -836,10 +924,15 @@
         '<button class="btn" data-act="random">' + icon('i-die') + ' Somewhere else</button>' +
       '</div>' +
       (next ? '<button class="btn" data-open="' + next.id + '">Next in ' + esc(A[ch.area].name) + ': ' + esc(next.title) + '</button>' : '') +
+      retireHTML(ch) +
     '</div>';
 
     host.innerHTML = html;
     if (!REDUCED) $$('.blk', host).forEach(function (el, i) { el.style.animationDelay = Math.min(i * 22, 260) + 'ms'; });
+
+    var retireSel = $('[data-retire-target]', host);
+    var retireBtn = $('[data-act="confirm-retire"]', host);
+    if (retireSel && retireBtn) retireSel.addEventListener('change', function () { retireBtn.disabled = !retireSel.value; });
 
     // Figures
     $$('[data-fig]', host).forEach(function (m) {
@@ -874,6 +967,35 @@
     $('#dueBadge').hidden = !dueCards().length;
   }
 
+  /* The retire control only ever appears for a chapter that isn't already
+     retiring, and only offers other live chapters as a replacement — you
+     cannot supersede a chapter with itself or with something already
+     retired. Requires a sync token, since this writes to content.js. */
+  function retireHTML(ch) {
+    if (ch.state === 'retiring') {
+      var by = CH[ch.supersededBy];
+      return '<p class="retire-note">Retiring — superseded by ' + (by ? esc(by.title) : 'a chapter no longer in the index') + '. It has already dropped off the live wall.</p>';
+    }
+    if (!getToken()) {
+      return '<p class="retire-note">Connect a sync token in the Register to retire drawers from here.</p>';
+    }
+    var candidates = BOOK.chapters.filter(function (c) { return c.id !== ch.id && c.state !== 'retiring'; })
+      .slice().sort(function (a, b) { return a.title.localeCompare(b.title); });
+    return '<details class="retire">' +
+      '<summary>' + icon('i-tag', 'ic') + 'Retire this drawer\u2026</summary>' +
+      '<div class="retire-body">' +
+        '<label class="retire-label">Superseded by' +
+          '<select data-retire-target>' +
+            '<option value="">Choose the chapter that replaced it\u2026</option>' +
+            candidates.map(function (c) { return '<option value="' + c.id + '">' + esc(c.title) + '</option>'; }).join('') +
+          '</select>' +
+        '</label>' +
+        '<button class="btn" data-act="confirm-retire" disabled>Confirm retirement</button>' +
+        '<p class="retire-note">Sets state to retiring and commits the change to content.js. The file and its concepts stay — it just drops off the live wall into the archive.</p>' +
+      '</div>' +
+    '</details>';
+  }
+
   function onReadingClick(e) {
     var t = e.target.closest('[data-c],[data-act],[data-open]');
     if (!t) return;
@@ -896,7 +1018,25 @@
       if (lbl) lbl.innerHTML = icon('i-check') + ' Read it again';
       refreshLabelCard(chr);
     }
+    if (act === 'confirm-retire') {
+      var chp = CH[S.lastOpen];
+      var box = t.closest('.retire');
+      var sel = box && box.querySelector('[data-retire-target]');
+      var supersededId = sel && sel.value;
+      if (!supersededId) { toast('Pick the chapter that replaced it first.'); return; }
+      if (!confirm('Retire “' + chp.title + '”? It moves to the archive, superseded by “' + CH[supersededId].title + '”.')) return;
+      t.disabled = true; t.textContent = 'Retiring\u2026';
+      retireChapter(chp.id, supersededId).then(function () {
+        toast('Retired — off the wall now, kept in the archive.');
+        logEvent('retire', chp.title, 'superseded by ' + CH[supersededId].title);
+        paint(chp);
+      }).catch(function (err) {
+        toast(err.message || 'Could not retire — check the token.');
+        t.disabled = false; t.textContent = 'Confirm retirement';
+      });
+    }
   }
+
 
   function blockHTML(b, i, ch) {
     var k = 'b' + i;
