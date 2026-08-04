@@ -48,7 +48,7 @@ Staged, and deliberately so:
 | `sw.js` | Eager shell cache and on-demand content cache. Bump `SHELL` for each shell release; bump `CONTENT` only for an incompatible runtime chunk-schema change. |
 | `app.js` | Routing, rendering, weight computation, extent, drilldown, scheduling, metrics, persistence. |
 | `fonts/` | Bricolage Grotesque, Literata and Azeret Mono, latin subset, self-hosted. All three are SIL Open Font License 1.1. |
-| `product/` | A standalone, static product-map page (own `index.html`/`.css`/`.js`, no build step) at `/product/`: product vision, capabilities and features grouped by what the product does (not by which file implements it), the build/dev-ops lens, a glossary, and a capture inbox persisted to `localStorage`. Not linked from the reading app's nav — a separate product-owner's workbench, reachable at its own path. |
+| `product/` | A standalone, static product-map page (own `index.html`/`.css`/`.js`, no build step) at `/product/`: product vision, capabilities and features grouped by what the product does (not by which file implements it), the build/dev-ops lens, a wall-anatomy diagram, a glossary, and a capture inbox persisted to `localStorage`. Not linked from the reading app's nav — a separate product-owner's workbench, reachable at its own path. |
 
 ## Adding a chapter
 

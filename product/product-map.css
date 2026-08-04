@@ -18,6 +18,7 @@
   --ok: #4c8f6a;
   --warn: #c9962f;
   --undef: #8a6a5a;
+  --blocked: #b1493f;
   --sans: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
@@ -111,12 +112,29 @@ main {
   opacity: 0.75;
 }
 
-.pm-vision ul {
-  margin: 0;
-  padding-left: 1.1rem;
-}
+.pm-vision ul { margin: 0; padding-left: 1.1rem; }
 
 .pm-vision li { margin: 0.15rem 0; }
+
+.pm-goal-list { list-style: none; padding-left: 0; }
+
+.pm-goal-list li {
+  margin: 0.3rem 0;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(244,236,224,0.08);
+}
+
+.pm-goal-list li:last-child { border-bottom: none; }
+
+.pm-goal-text { display: block; }
+
+.pm-goal-areas {
+  display: block;
+  font-size: 0.78rem;
+  font-family: var(--mono);
+  opacity: 0.6;
+  margin-top: 0.15rem;
+}
 
 .pm-lens-note {
   opacity: 0.75;
@@ -201,9 +219,31 @@ main {
 }
 
 .pm-status-pill.built { background: rgba(76,143,106,0.2); color: var(--ok); }
+.pm-status-pill.stable { background: rgba(76,143,106,0.2); color: var(--ok); }
+.pm-status-pill.active { background: rgba(201,150,47,0.22); color: var(--brass-lit); }
+.pm-status-pill.blocked { background: rgba(177,73,63,0.22); color: var(--blocked); }
 .pm-status-pill.undefined { background: rgba(138,106,90,0.25); color: var(--undef); }
 .pm-status-pill.informal { background: rgba(201,150,47,0.2); color: var(--warn); }
 .pm-status-pill.backlog { background: rgba(201,150,47,0.15); color: var(--warn); border: 1px dashed var(--warn); }
+
+.pm-goal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0 0 0.6rem;
+}
+
+.pm-goal-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  background: rgba(244,236,224,0.08);
+  border: 1px solid var(--cab-edge);
+  color: var(--on-cab);
+  opacity: 0.85;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  cursor: help;
+}
 
 .pm-card ul.pm-details {
   margin: 0.4rem 0 0;
@@ -286,6 +326,58 @@ main {
 .pm-empty {
   opacity: 0.55;
   font-style: italic;
+}
+
+.pm-legend-stable, .pm-legend-active, .pm-legend-blocked, .pm-legend-backlog {
+  font-weight: 600;
+}
+.pm-legend-stable { color: var(--ok); }
+.pm-legend-active { color: var(--brass-lit); }
+.pm-legend-blocked { color: var(--blocked); }
+.pm-legend-backlog { color: var(--warn); }
+
+.pm-anatomy {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.pm-anatomy-figure {
+  margin: 0;
+  background: var(--ink);
+  border: 1px solid var(--cab-edge);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.pm-anatomy-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.pm-anatomy-key {
+  margin: 0;
+  padding-left: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.92rem;
+}
+
+.pm-anatomy-key li {
+  padding-left: 0.25rem;
+}
+
+.pm-anatomy-key li::marker {
+  color: var(--brass-lit);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.pm-anatomy-key b {
+  color: var(--brass-lit);
 }
 
 .pm-glossary dt {
