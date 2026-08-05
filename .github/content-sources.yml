@@ -18,6 +18,10 @@
 #   type   - "rss" : an RSS/Atom feed URL. Preferred — stable, structured, cheap to diff. "page" : a plain web page with no feed. Best-effort scrape of the rendered page; less reliable. Use only when the source has no feed. "github-commits" : a GitHub commits Atom feed scoped to one path in a docs repo (https://github.com/<owner>/<repo>/commits/<branch>/<path>.atom). The workflow fetches each new commit's .diff and only reports commits whose diff changes substantive prose, not typo/metadata/freshness-bot commits — see content-watch.md.
 #   active - true to include it in the daily run, false to skip it.
 #   notes  - free text: why it's paused, quirks, anything worth remembering later.
+#   learn  - "github-commits" sources only, optional. Maps the repo's file paths to their published Microsoft Learn URLs, so the digest can link the actual doc page instead of the GitHub commit. Two sub-fields:
+#              strip_prefix - the leading repo path segment to remove (e.g. "articles/", "docs/").
+#              base_url     - the Learn URL to prepend after stripping (e.g. "https://learn.microsoft.com/en-us/azure").
+#            Omit `learn` entirely for a source whose repo layout doesn't map cleanly to Learn (the digest then falls back to the commit link).
 
 sources:
   - id: simon-willison
@@ -61,6 +65,9 @@ sources:
     type: github-commits
     active: true
     notes: "Scoped to docs/onelake — ties to the shortcut/OneLake chapters."
+    learn:
+      strip_prefix: "docs/"
+      base_url: "https://learn.microsoft.com/en-us/fabric"
 
   - id: fabric-docs-data-warehouse
     name: Fabric docs — Data Warehouse
@@ -68,6 +75,9 @@ sources:
     type: github-commits
     active: true
     notes: "Scoped to docs/data-warehouse — ties to the V-Order / Direct Lake chapters."
+    learn:
+      strip_prefix: "docs/"
+      base_url: "https://learn.microsoft.com/en-us/fabric"
 
   - id: fabric-docs-enterprise
     name: Fabric docs — Enterprise (capacity & admin)
@@ -75,6 +85,9 @@ sources:
     type: github-commits
     active: true
     notes: "Scoped to docs/enterprise — ties to the capacity-unit chapter."
+    learn:
+      strip_prefix: "docs/"
+      base_url: "https://learn.microsoft.com/en-us/fabric"
 
   - id: powerbi-docs-guidance
     name: Power BI docs — Guidance
@@ -82,6 +95,9 @@ sources:
     type: github-commits
     active: true
     notes: ""
+    learn:
+      strip_prefix: "powerbi-docs/"
+      base_url: "https://learn.microsoft.com/en-us/power-bi"
 
   - id: architecture-center-patterns
     name: Azure Architecture Center — Patterns
@@ -89,6 +105,9 @@ sources:
     type: github-commits
     active: true
     notes: "Direct match for the book's pattern-kind concepts (e.g. impedance-mismatch)."
+    learn:
+      strip_prefix: "docs/patterns/"
+      base_url: "https://learn.microsoft.com/en-us/azure/architecture/patterns"
 
   - id: azure-docs
     name: Azure docs (all services)
@@ -96,6 +115,9 @@ sources:
     type: github-commits
     active: true
     notes: "Unscoped — whole repo, capped to the 20 most recent commits per run like every other source. Broad Azure/technology signal rather than a chapter-specific bridge; revisit if it's too noisy or too thin once the digest has run a few times."
+    learn:
+      strip_prefix: "articles/"
+      base_url: "https://learn.microsoft.com/en-us/azure"
 
   - id: example-page
     name: "EXAMPLE — replace before activating"
