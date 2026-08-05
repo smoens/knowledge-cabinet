@@ -209,15 +209,14 @@
       'Draft a Knowledge Cabinet chapter from this clipping using the chapter-authoring skill.',
       'Title: ' + item.title,
       'Source URL: ' + item.url,
+      item.excerpt ? 'Excerpt: ' + item.excerpt : '',
       item.note ? 'My note: ' + item.note : '',
       '',
+      'Fetch the source URL yourself to read the full article \u2014 do not ask me for the text.',
       'Write blocks at all four depths (spine/working/full/source), give every named idea a',
       'concepts[] entry with an inline [[id]] mention, bridge to existing concepts via seeAlso,',
       'include at least one prompt block, and cite this URL in sources[]. The wording should be',
-      'the drawer\u2019s own, not a copy of the source text below.',
-      '',
-      '--- parsed article text (for reference only, do not quote at length) ---',
-      item.markdown || ''
+      'the drawer\u2019s own, not a copy of the source text.'
     ].filter(function (l) { return l !== undefined; }).join('\n');
   }
 

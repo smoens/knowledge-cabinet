@@ -254,5 +254,27 @@ Object.assign(window.CABINET_CONCEPT_DETAILS, {
         "url": "https://github.github.com/gh-aw/introduction/architecture/"
       }
     ]
+  },
+  "dsl": {
+    "fundamental": "A language's reliability under generation is inversely proportional to how many valid ways it offers to say the same thing — a general-purpose language leaves a generator guessing; a domain-specific one narrows the guess to almost nothing.",
+    "mechanism": "Build a small, constrained syntax for one domain's concepts and operations rather than reusing a general-purpose language, and pair it with a validator, so both a person and a generator can express intent in a form that is checked, not merely parsed.",
+    "sources": [
+      {
+        "label": "Martin Fowler — Domain-Specific Language",
+        "url": "https://martinfowler.com/dsl.html"
+      }
+    ]
+  },
+  "constrained-grammar": {
+    "fundamental": "Reliability from a generator comes from shrinking the space of valid outputs, not from the generator getting smarter — a few examples can cover a small grammar completely, but never a large one.",
+    "mechanism": "Before prompting for generation, ask how many syntactically different ways the target language allows the same intent to be expressed. If the answer is \"many\", either restrict the grammar or accept that the generator will guess wrong some fraction of the time."
+  },
+  "semantic-model": {
+    "fundamental": "Meaning lives apart from notation. A syntax tree can double as the model in a small tool, but in any real domain the model has to encode the actual design decisions, and the syntax is only a carrier for it.",
+    "mechanism": "Name the domain's real decisions as concrete, checkable types — not string literals or generic maps — so that generating against the vocabulary means filling in logic against an already-fixed substrate, not inventing one from a paragraph of prose."
+  },
+  "generate-and-check": {
+    "fundamental": "An autonomous loop is only as safe as its checker — the value of the automation comes from the validator that rejects bad candidates, not from the generator producing fewer of them.",
+    "mechanism": "Wrap generation in a loop that runs every candidate past a deterministic validator — a parser, schema, type checker, or compiler — and feed the resulting domain-level error back in as the next prompt, so the loop can close itself without a human reading every attempt."
   }
 });

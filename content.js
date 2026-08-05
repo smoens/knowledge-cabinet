@@ -340,7 +340,8 @@ window.BOOK = {
       "seeAlso": [
         "first-principle",
         "constraint",
-        "blast-radius"
+        "blast-radius",
+        "generate-and-check"
       ]
     },
     {
@@ -364,7 +365,8 @@ window.BOOK = {
       "seeAlso": [
         "invariant",
         "slack",
-        "least-privilege"
+        "least-privilege",
+        "constrained-grammar"
       ]
     },
     {
@@ -408,7 +410,8 @@ window.BOOK = {
       "short": "A concrete thing both people can point at.",
       "seeAlso": [
         "curse-of-knowledge",
-        "abstraction-ladder"
+        "abstraction-ladder",
+        "semantic-model"
       ]
     },
     {
@@ -430,7 +433,8 @@ window.BOOK = {
       "short": "A fully solved instance studied before attempting your own.",
       "seeAlso": [
         "intuition",
-        "desirable-difficulty"
+        "desirable-difficulty",
+        "semantic-model"
       ]
     },
     {
@@ -716,6 +720,54 @@ window.BOOK = {
         "defense-in-depth",
         "least-privilege"
       ]
+    },
+    {
+      "id": "dsl",
+      "term": "Domain-specific language",
+      "kind": "concept",
+      "area": "tech",
+      "short": "A syntax deliberately constrained to one domain's concepts and operations, not a general-purpose language.",
+      "seeAlso": [
+        "constrained-grammar",
+        "semantic-model",
+        "generate-and-check"
+      ]
+    },
+    {
+      "id": "constrained-grammar",
+      "term": "Constrained grammar",
+      "kind": "pattern",
+      "area": "tech",
+      "short": "A grammar narrow enough that a handful of examples covers nearly every way a request can be legally expressed.",
+      "seeAlso": [
+        "dsl",
+        "generate-and-check",
+        "constraint"
+      ]
+    },
+    {
+      "id": "semantic-model",
+      "term": "Semantic model",
+      "kind": "pattern",
+      "area": "tech",
+      "short": "The typed vocabulary of concepts and rules a syntax stands for, kept distinct from the surface that carries it.",
+      "seeAlso": [
+        "dsl",
+        "shared-referent",
+        "worked-example"
+      ]
+    },
+    {
+      "id": "generate-and-check",
+      "term": "Generate-and-check loop",
+      "kind": "pattern",
+      "area": "tech",
+      "short": "Producing a candidate, running it past a deterministic validator, and repairing it from the error with no human step in between.",
+      "seeAlso": [
+        "dsl",
+        "constrained-grammar",
+        "invariant"
+      ]
     }
   ],
   "chapters": [
@@ -968,6 +1020,26 @@ window.BOOK = {
       ],
       "workingBlockCount": 12,
       "chunk": "content/chapters/safe-outputs.js"
+    },
+    {
+      "id": "dsl-reliability",
+      "title": "DSLs enable reliable use of LLMs",
+      "area": "tech",
+      "state": "new",
+      "added": "2026-08-05",
+      "revised": "2026-08-05",
+      "minutes": 9,
+      "summary": "A DSL doesn't make an LLM smarter. It shrinks the space of valid outputs so far that a handful of examples pins the correct usage down completely, and it usually ships with a validator that lets a generate-repair loop close itself without a human in it.",
+      "concepts": [
+        "dsl",
+        "constrained-grammar",
+        "generate-and-check",
+        "semantic-model",
+        "shared-referent",
+        "worked-example"
+      ],
+      "workingBlockCount": 13,
+      "chunk": "content/chapters/dsl-reliability.js"
     }
   ],
   "conceptDetailChunks": {
@@ -1004,10 +1076,10 @@ window.BOOK = {
     "first-principle": 1,
     "transfer": 2,
     "curse-of-knowledge": 2,
-    "shared-referent": 1,
+    "shared-referent": 2,
     "abstraction-ladder": 1,
     "intuition": 1,
-    "worked-example": 2,
+    "worked-example": 3,
     "amortization": 2,
     "shortcut": 1,
     "onelake": 2,
@@ -1029,6 +1101,10 @@ window.BOOK = {
     "least-privilege": 1,
     "defense-in-depth": 1,
     "sandbox": 2,
-    "blast-radius": 2
+    "blast-radius": 2,
+    "dsl": 3,
+    "constrained-grammar": 2,
+    "semantic-model": 2,
+    "generate-and-check": 2
   }
 };

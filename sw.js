@@ -3,7 +3,7 @@
    resources join a runtime cache only when a reader uses them. Bump SHELL for
    each shell release. CONTENT stays stable so read drawers survive updates;
    bump it only when the runtime chunk schema changes incompatibly. */
-var SHELL = 'cabinet-shell-v13';
+var SHELL = 'cabinet-shell-v14';
 var CONTENT = 'cabinet-content-v1';
 
 var FILES = [
