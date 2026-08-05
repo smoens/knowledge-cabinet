@@ -4,9 +4,8 @@
 #
 # HOW TO ADD A SOURCE
 #   1. Append an entry below with a unique `id`, the feed/page `url`, and `active: true`.
-#   2. If the source's domain isn't already covered by `network.allowed` in content-watch.md, add it there (see the comment next to that field).
-#   3. Recompile so the lock file matches the new network allowlist: gh aw compile content-watch --strict
-#   No code change is needed for the source list itself — only the workflow frontmatter needs a recompile, and only when a genuinely new domain is involved.
+#   2. No workflow-network change is needed: the deterministic preflight retrieves configured sources before Copilot starts.
+#   3. No recompile is needed for a source-list-only change.
 #
 # HOW TO DEACTIVATE A SOURCE
 #   Set `active: false`. Keep the entry — don't delete it — so there's a record of what used to be watched and why it stopped. Use `notes` to say why (site died, too noisy, replaced by another source, etc). No recompile needed to deactivate.

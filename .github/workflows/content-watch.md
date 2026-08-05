@@ -10,13 +10,9 @@ permissions:
   contents: read
   copilot-requests: write
 engine: copilot
-network:
-  # Candidate retrieval is deterministic in the preflight job; the agent needs only GitHub safe-output access.
-  allowed:
-    - defaults
-tools:
-  github:
-    mode: gh-proxy
+if: needs.preflight.outputs.has_work == 'true'
+network: {}
+checkout: false
 safe-outputs:
   create-issue:
     title-prefix: "[content-watch] "
@@ -31,7 +27,7 @@ concurrency:
   group: content-watch
 pre-agent-steps:
   - name: Download compact candidates
-    uses: actions/download-artifact@v4
+    uses: actions/download-artifact@v8
     with:
       name: content-watch-candidates
       path: /tmp/gh-aw/content-watch
@@ -46,11 +42,11 @@ jobs:
       has_work: ${{ steps.prepare.outputs.has_work }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Restore content-watch state
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           key: memory-none-nopolicy-contentwatch-${{ github.run_id }}
           restore-keys: |
@@ -66,20 +62,19 @@ jobs:
             --summary "$GITHUB_STEP_SUMMARY"
       - name: Upload compact candidates
         if: steps.prepare.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: content-watch-candidates
           path: ${{ runner.temp }}/content-watch/candidates.json
           if-no-files-found: error
       - name: Save content-watch state
         if: steps.prepare.outcome == 'success'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           key: memory-none-nopolicy-contentwatch-${{ github.run_id }}
           path: ${{ runner.temp }}/content-watch-memory
   agent:
     needs: preflight
-    if: needs.preflight.outputs.has_work == 'true'
 ---
 
 # Curate prepared content-watch candidates
