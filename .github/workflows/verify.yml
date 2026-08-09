@@ -29,3 +29,6 @@ jobs:
 
       - name: Check the content model holds together
         run: node .github/scripts/check-content.mjs
+
+      - name: Check content-watch allowed-domains covers every source
+        run: node .github/scripts/check-content-watch-domains.mjs

@@ -14,6 +14,15 @@ if: needs.preflight.outputs.has_work == 'true'
 network: {}
 checkout: false
 safe-outputs:
+  # Every domain here must cover an active source's URL in content-sources.yml (and
+  # its `learn.base_url` host, if set), or that source's links render as `(redacted)`.
+  # .github/scripts/check-content-watch-domains.mjs enforces this in CI.
+  allowed-domains:
+    - simonwillison.net
+    - www.lesswrong.com
+    - martinfowler.com
+    - community.fabric.microsoft.com
+    - learn.microsoft.com
   create-issue:
     title-prefix: "[content-watch] "
     labels: [content-watch]
