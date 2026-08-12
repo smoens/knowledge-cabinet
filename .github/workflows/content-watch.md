@@ -4,7 +4,10 @@ description: Deterministically checks the sources in .github/content-sources.yml
 emoji: 📰
 strict: true
 on:
-  schedule: "0 6 * * *"   # 7:00 AM Brussels (CET / UTC+1)
+  # Target: 7:00 AM CET (UTC+1), fixed offset year-round (not DST-adjusted).
+  # Scheduled off the top of the hour and ~1h20m early to build in slack for
+  # GitHub Actions' well-documented scheduled-workflow delay/congestion.
+  schedule: "37 4 * * *"
   workflow_dispatch:
 permissions:
   contents: read
