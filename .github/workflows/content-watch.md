@@ -13,10 +13,10 @@ permissions:
   contents: read
   copilot-requests: write
 engine: copilot
-# Pinned explicitly because the installed gh-aw compiler's built-in default
-# (claude-sonnet-4.6) is not an available model for this integrator, which
-# causes every agent run to fail with a "model not available" error.
-model: claude-sonnet-4.5
+# Pinned explicitly: claude-sonnet-4.5 was retired by the model provider
+# ("400 The requested model is not supported"). claude-sonnet-4.6 is the
+# current default and is confirmed available for this integrator.
+model: claude-sonnet-4.6
 if: needs.preflight.outputs.has_work == 'true'
 network: {}
 checkout: false
