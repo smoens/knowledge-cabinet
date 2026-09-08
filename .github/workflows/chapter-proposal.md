@@ -22,6 +22,7 @@ engine: copilot
 network: {}
 tools:
   bash: []
+  cli-proxy: false
 
 safe-outputs:
   staged: true

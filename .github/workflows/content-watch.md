@@ -35,7 +35,7 @@ safe-outputs:
     labels: [content-watch]
     assignees: [smoens]
     close-older-issues: true
-    expires: 14
+    expires: 14d
     max: 1
 timeout-minutes: 25
 max-ai-credits: 1000
@@ -43,7 +43,7 @@ concurrency:
   group: content-watch
 pre-agent-steps:
   - name: Download compact candidates
-    uses: actions/download-artifact@v8
+    uses: actions/download-artifact@v8.0.1
     with:
       name: content-watch-candidates
       path: /tmp/gh-aw/content-watch
@@ -58,11 +58,11 @@ jobs:
       has_work: ${{ steps.prepare.outputs.has_work }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - name: Restore content-watch state
-        uses: actions/cache/restore@v6
+        uses: actions/cache/restore@v6.1.0
         with:
           key: memory-none-nopolicy-contentwatch-${{ github.run_id }}
           restore-keys: |
@@ -78,14 +78,14 @@ jobs:
             --summary "$GITHUB_STEP_SUMMARY"
       - name: Upload compact candidates
         if: steps.prepare.outcome == 'success'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: content-watch-candidates
           path: ${{ runner.temp }}/content-watch/candidates.json
           if-no-files-found: error
       - name: Save content-watch state
         if: steps.prepare.outcome == 'success'
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@v6.1.0
         with:
           key: memory-none-nopolicy-contentwatch-${{ github.run_id }}
           path: ${{ runner.temp }}/content-watch-memory
